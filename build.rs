@@ -1,63 +1,44 @@
-use std::collections::HashSet;
-use std::env;
-use std::fs::{read_dir, read_to_string, File};
-use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
+use std::{env, fs};
 
-use pest::*;
-use pest_derive::Parser;
+mod tup_finder;
 
-#[derive(Parser)]
-#[grammar = "grammar.pest"]
-pub struct TupFinder;
-
-fn main() {
-    println!("rerun-if-changed=src");
-
+pub fn main() {
     let files = get_rust_files();
-    let all_identifiers = get_all_identifiers(files);
-    let new_file_contents = create_file_contents(all_identifiers);
+    let all_identifiers = tup_finder::get_all_identifiers(files);
 
     let out_dir = &env::var("OUT_DIR").unwrap();
-    let dest_path = Path::new(out_dir).join("tuple_types.rs");
+    let gen_path = Path::new(out_dir).join("identifiers.in");
 
-    if dest_path.is_file() {
-        let mut tuple_types = File::open(&dest_path).unwrap();
-
-        let mut old_file_contents = String::new();
-        tuple_types.read_to_string(&mut old_file_contents).unwrap();
-
-        if new_file_contents != old_file_contents {
-            drop(tuple_types);
-            let mut f_dest = File::create(&dest_path).unwrap();
-            f_dest.write_all(new_file_contents.as_ref()).unwrap();
-        }
-    } else {
-        let mut tuple_types = File::create(&dest_path).unwrap();
-        tuple_types.write_all(new_file_contents.as_ref()).unwrap();
+    let new_file_contents = create_file_contents(all_identifiers);
+    if should_rewrite_file(&gen_path, &new_file_contents) {
+        fs::write(&gen_path, new_file_contents).unwrap();
     }
 }
 
-fn create_file_contents(all_identifiers: HashSet<String>) -> String {
-    let mut identifiers: Vec<String> = all_identifiers.into_iter().collect();
+fn should_rewrite_file(gen_path: &PathBuf, new_file_contents: &String) -> bool {
+    if !gen_path.is_file() {
+        return true;
+    }
+    let current_file_contents = fs::read_to_string(&gen_path).unwrap();
+    &current_file_contents != new_file_contents
+}
 
-    identifiers.sort();
-    let joined = identifiers.join(",");
+fn create_file_contents(all_identifiers: Vec<String>) -> String {
+    let joined = all_identifiers.join("\",\"");
+    dbg!(&joined);
 
-    format!(
-        "pub fn message() -> &'static str {{
-            \"{joined}\"
-        }}"
-    )
+    format!("&[\"{joined}\"]")
 }
 
 fn get_rust_files() -> Vec<PathBuf> {
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let mut directories = vec![manifest_dir.join("src")];
+    let src = env::var("NAMED_TUPS_DIR").unwrap();
+    println!("cargo:rerun-if-changed={src}");
+    let mut directories = vec![PathBuf::new().join(&src)];
     let mut files = vec![];
 
     while let Some(directory) = directories.pop() {
-        for entry in read_dir(directory).unwrap() {
+        for entry in fs::read_dir(directory).unwrap() {
             let path = entry.unwrap().path();
 
             if path.is_dir() {
@@ -70,21 +51,4 @@ fn get_rust_files() -> Vec<PathBuf> {
         }
     }
     files
-}
-
-fn get_all_identifiers(files: Vec<PathBuf>) -> HashSet<String> {
-    let mut all_identifiers = HashSet::new();
-    for file in files {
-        let code = read_to_string(file).unwrap();
-
-        let tuples = TupFinder::parse(Rule::file, &code);
-
-        if let Ok(tuples) = tuples {
-            for tuple in tuples {
-                let ident = tuple.as_str();
-                all_identifiers.insert(ident.to_string());
-            }
-        }
-    }
-    all_identifiers
 }

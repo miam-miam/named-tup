@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 struct Tup;
 /// new to create empty tuple
 /// each named argument creates a separate struct like a builder struct where they each implement

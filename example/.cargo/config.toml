@@ -1,0 +1,2 @@
+[env]
+NAMED_TUPS_DIR = {value = "src", relative = true}
