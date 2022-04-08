@@ -6,7 +6,7 @@ WHITESPACE = _{ " " }
 COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
 
 ident_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" }
-ident =  {
+ident =  @{
     ('a'..'z' | 'A'..'Z') ~ ident_char* |
     "_" ~ ident_char+
 }
@@ -24,9 +24,9 @@ string = _{ "\"" ~ (raw_string | escape)* ~ "\"" }
 char = _{ !( "(" | ")" | "," ) ~ ANY}
 char_inside = _{ !( "(" | ")" ) ~ ANY}
 
-expr_inside = _{ string | char_inside+ ~ ("(" ~ (expr_inside | "") ~ ")")? | "(" ~ (expr_inside | "") ~ ")" }
-expr        = _{ string | char+        ~ ("(" ~ (expr_inside | "") ~ ")")? | "(" ~ (expr_inside | "") ~ ")" }
+expr_inside = _{ string | char_inside+ ~ NEWLINE? ~ ("(" ~ NEWLINE? ~ (expr_inside | "") ~ NEWLINE? ~ ")")? | "(" ~ NEWLINE? ~ (expr_inside | "") ~ NEWLINE? ~ ")" }
+expr        = _{ string | char+        ~ NEWLINE? ~ ("(" ~ NEWLINE? ~ (expr_inside | "") ~ NEWLINE? ~ ")")? | "(" ~ NEWLINE? ~ (expr_inside | "") ~ NEWLINE? ~ ")" }
 
-arguments = _{ (ident ~ ":" ~ expr) | ident }
-tup = _{ "tup" ~ "!" ~ "(" ~ arguments ~ ("," ~ arguments)* ~ ")" }
+arguments = _{ (ident ~ NEWLINE? ~ ":" ~ NEWLINE? ~ expr) | ident }
+tup = _{ "tup" ~ NEWLINE? ~ "!" ~ NEWLINE? ~ "(" ~ NEWLINE? ~ arguments ~ NEWLINE? ~ ("," ~ NEWLINE? ~ arguments ~ NEWLINE?)* ~ NEWLINE? ~ ")" }
 file = _{ (tup | ANY)* }

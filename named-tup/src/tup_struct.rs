@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
-struct Tup;
+use named_tup_derive;
+
+named_tup_derive::tup_struct_builder!();
 /// new to create empty tuple
 /// each named argument creates a separate struct like a builder struct where they each implement
 /// a Trait with setter for each named argument they don't have
@@ -10,7 +12,7 @@ struct Tup;
 /// The supported operations on tuples would be accessing member variables,
 /// + (only if there is no intersection), - and adding.
 /// Should allow you to do tup!(foo: 5, bar) where bar is an already defined var.
-/// Since everything is a struct we get derive traits for free!
+/// Since everything is a struct we get named-tup-derive traits for free!
 
 struct Tupfoo<T> {
     foo: T,

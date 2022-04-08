@@ -1,7 +1,8 @@
-use pest::Parser;
 use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
+
+use pest::Parser;
 
 #[derive(pest_derive::Parser)]
 #[grammar = "../grammar.pest"]

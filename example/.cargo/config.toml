@@ -1,2 +1,2 @@
 [env]
-NAMED_TUPS_DIR = {value = "src", relative = true}
+NAMED_TUPS_DIR = { value = "src", relative = true }

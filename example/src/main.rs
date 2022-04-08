@@ -1,9 +1,19 @@
-fn main() {
-    let count = 5;
+#[macro_use]
+extern crate named_tup;
 
-    // let item = tup!(count, banana: "Banana")
+fn main() {
+    // let count = 5;
+
+    let mut item = tup!(count: "Banana");
     // assert_eq!(item.count, count);
     // assert_eq!(item.banana, "Banana");
 
-    println!("{:?}", named_tup::IDENTIFIERS);
+    item.count = "Yum";
+
+    let item = tup!(
+        count: item.count,
+        banana: "42345"
+    );
+    println!("{}", item.banana);
+    assert_eq!(item.count, "Yum");
 }
