@@ -46,7 +46,7 @@ impl Parse for TupInvocation {
     fn parse(input: ParseStream) -> Result<Self> {
         input.parse_terminated(TupElement::parse).map(
             |v: syn::punctuated::Punctuated<TupElement, Token![,]>| {
-                let mut values: Vec<_> = v.into_iter().collect();
+                let mut values: Vec<TupElement> = v.into_iter().collect();
                 values.sort();
                 TupInvocation { values }
             },
