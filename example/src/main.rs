@@ -4,7 +4,7 @@ extern crate named_tup;
 fn main() {
     // let count = 5;
 
-    let mut item = tup!(count: "Banana");
+    let mut item = tup!(count: "Count");
     // assert_eq!(item.count, count);
     // assert_eq!(item.banana, "Banana");
 

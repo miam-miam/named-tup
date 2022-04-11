@@ -2,8 +2,8 @@ use std::cmp::Ordering;
 
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::{
-    Expr,
-    parse::{Parse, ParseStream, Result}, Token,
+    parse::{Parse, ParseStream, Result},
+    Expr, Token,
 };
 
 use crate::IDENTIFIERS;
@@ -55,32 +55,35 @@ impl Parse for TupInvocation {
 }
 
 impl TupInvocation {
-    pub fn to_token_stream(mut self) -> TokenStream {
+    pub fn to_token_stream(self) -> TokenStream {
         let mut expressions = vec![];
         let mut identifiers = vec![];
+        let mut generics = vec![];
+        let empty = (0..IDENTIFIERS.len()).map(|_| Ident::new("_", Span::call_site()));
+        let mut values = self
+            .values
+            .into_iter()
+            .map(|v| (v.name.to_string(), v))
+            .peekable();
 
-        // We need to go backwards so that values and identifiers are sorted in the same way and so that popping is O(1).
-        for identifier in IDENTIFIERS.iter().rev() {
-            match self
-                .values
-                .get(self.values.len().saturating_sub(1))
-                .map(|v| v.name.to_string())
-            {
-                Some(tup_identifier) if identifier == &tup_identifier => {
-                    let elem = self.values.pop().unwrap();
-                    expressions.push(elem.value);
-                    identifiers.push(elem.name);
+        for identifier in IDENTIFIERS {
+            match values.peek() {
+                Some((val, _)) if val == identifier => {
+                    let elem = values.next().unwrap();
+                    expressions.push(elem.1.value);
+                    identifiers.push(elem.1.name);
+                    generics.push(syn::parse_str::<syn::Type>("crate::named_tup::NotUnit").unwrap())
                 }
                 _ => {
                     expressions.push(syn::parse_str::<syn::Expr>("()").unwrap());
                     identifiers.push(Ident::new(identifier, Span::call_site()));
+                    generics.push(syn::parse_str::<syn::Type>("()").unwrap())
                 }
-            };
-        }
-        let expanded = quote! {
-            crate::named_tup::Tup {
-                #(#identifiers: #expressions),*
             }
+        }
+
+        let expanded = quote! {
+            crate::named_tup::Tup::<#(#empty),* , #(#generics),*>::new( #(#expressions),* )
         };
 
         TokenStream::from(expanded)

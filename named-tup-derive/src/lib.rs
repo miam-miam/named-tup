@@ -20,7 +20,7 @@ const IDENTIFIERS: &'static [&'static str] = &include!(concat!(env!("OUT_DIR"), 
 
 #[proc_macro]
 pub fn tup_struct_builder(_input: TokenStream) -> TokenStream {
-    TokenStream::from(tup_struct::to_token_stream())
+    TokenStream::from(tup_struct::TupInfo::new().to_token_stream())
 }
 
 #[proc_macro]
