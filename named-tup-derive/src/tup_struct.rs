@@ -48,9 +48,8 @@ impl TupInfo {
             &self.full_generics,
         );
 
-        // TODO: Do Debug properly
         let expanded = quote! {
-            #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+            #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
             #[must_use]
             pub struct Tup<#full_generics> {
                 #(pub #fields: #generics),*,
@@ -107,20 +106,17 @@ impl TupInfo {
         );
 
         let expanded = quote! {
-            impl<'a, #full_generics> core::fmt::Debug for Tup<#full_generics>
-                where #((&'a #generics, #phantom_generics, &'static str): crate::ConvertToDebugStruct),*,
-                #(#phantom_generics: core::default::Default),*,
-                #(#generics: 'a),*,
+            impl<#full_generics> core::fmt::Debug for Tup<#full_generics>
+                where #(#phantom_generics: crate::ConvertToDebugStruct + core::default::Default),*,
+                #(#generics: core::fmt::Debug),*
             {
-                fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                     let mut debug_struct = f.debug_struct("tup");
-                    #((&self.#fields, <#phantom_generics as core::default::Default>::default(), stringify!(#fields)).convert(&mut debug_struct);)*
+                    #(crate::ConvertToDebugStruct::convert(<#phantom_generics as core::default::Default>::default(), &mut debug_struct, stringify!(#fields), &self.#fields);)*
                     debug_struct.finish()
                 }
             }
         };
-
-        println!("{expanded}");
 
         TokenStream::from(expanded)
     }

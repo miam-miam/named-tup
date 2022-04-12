@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
-use core::fmt::{Debug, DebugStruct, Formatter};
+use core::fmt::{Debug, DebugStruct};
+
 use named_tup_derive;
 
 named_tup_derive::tup_struct_builder!();
@@ -21,14 +22,12 @@ pub struct NotUnit;
 pub trait CanCombine {
     type Output;
     type PhantomOutput;
-
     fn combine(self) -> Self::Output;
 }
 
 impl<T> CanCombine for (T, T, NotUnit, NotUnit) {
     type Output = T;
     type PhantomOutput = NotUnit;
-
     fn combine(self) -> T {
         self.0
     }
@@ -37,7 +36,6 @@ impl<T> CanCombine for (T, T, NotUnit, NotUnit) {
 impl<T> CanCombine for (T, (), NotUnit, ()) {
     type Output = T;
     type PhantomOutput = NotUnit;
-
     fn combine(self) -> T {
         self.0
     }
@@ -46,7 +44,6 @@ impl<T> CanCombine for (T, (), NotUnit, ()) {
 impl<T> CanCombine for ((), T, (), NotUnit) {
     type Output = T;
     type PhantomOutput = NotUnit;
-
     fn combine(self) -> T {
         self.1
     }
@@ -55,22 +52,21 @@ impl<T> CanCombine for ((), T, (), NotUnit) {
 impl CanCombine for ((), (), (), ()) {
     type Output = ();
     type PhantomOutput = ();
-
     fn combine(self) -> () {
         ()
     }
 }
 
 pub trait ConvertToDebugStruct {
-    fn convert(&self, debug_struct: &mut DebugStruct);
+    fn convert(_: Self, debug_struct: &mut DebugStruct, name: &str, value: &dyn Debug);
 }
 
-impl<'a, T: core::fmt::Debug> ConvertToDebugStruct for (&'a T, NotUnit, &'static str) {
-    fn convert(&self, debug_struct: &mut DebugStruct) {
-        debug_struct.field(self.2, &self.0);
+impl ConvertToDebugStruct for NotUnit {
+    fn convert(_: Self, debug_struct: &mut DebugStruct, name: &str, value: &dyn Debug) {
+        debug_struct.field(name, value);
     }
 }
 
-impl ConvertToDebugStruct for ((), (), &str) {
-    fn convert(&self, _debug_struct: &mut DebugStruct) {}
+impl ConvertToDebugStruct for () {
+    fn convert(_: Self, _debug_struct: &mut DebugStruct, _name: &str, _value: &dyn Debug) {}
 }
