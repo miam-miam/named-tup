@@ -29,7 +29,7 @@ impl<T> CanCombine for (T, T, NotUnit, NotUnit) {
     type Output = T;
     type PhantomOutput = NotUnit;
     fn combine(self) -> T {
-        self.0
+        self.1
     }
 }
 

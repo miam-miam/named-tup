@@ -2,15 +2,19 @@
 extern crate named_tup;
 
 fn main() {
-    // let count = 5;
-    let mut item = tup!(count: "Count");
+    let count = tup!(count: 5);
+    let mut count = test(count);
 
-    item.count = "Yum";
+    count.count = 42345;
 
-    let item = item + tup!(banana: 42345);
+    let item = count + tup!(banana: 2);
 
-    let test = item + tup!(lol: "Lol", count: "Hi");
+    let test = item + tup!(lol: "Lol", count: 8);
     println!("{test:?}");
     println!("{:?}", tup!(lol: "Yap"));
-    assert_eq!(test, tup!(count: "Yum", lol: "Lol", banana: 42345));
+    assert_eq!(test, tup!(count: 8, lol: "Lol", banana: 2));
+}
+
+fn test(arg: tup!(count: i32)) -> tup!(count: i64) {
+    tup!(count: arg.count.into())
 }
