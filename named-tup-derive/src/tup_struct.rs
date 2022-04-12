@@ -98,6 +98,33 @@ impl TupInfo {
         TokenStream::from(expanded)
     }
 
+    fn to_debug_impl(&self) -> TokenStream {
+        let (generics, fields, full_generics, phantom_generics) = (
+            &self.generics,
+            &self.fields,
+            &self.full_generics,
+            &self.phantom_generics,
+        );
+
+        let expanded = quote! {
+            impl<'a, #full_generics> core::fmt::Debug for Tup<#full_generics>
+                where #((&'a #generics, #phantom_generics, &'static str): crate::ConvertToDebugStruct),*,
+                #(#phantom_generics: core::default::Default),*,
+                #(#generics: 'a),*,
+            {
+                fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                    let mut debug_struct = f.debug_struct("tup");
+                    #((&self.#fields, <#phantom_generics as core::default::Default>::default(), stringify!(#fields)).convert(&mut debug_struct);)*
+                    debug_struct.finish()
+                }
+            }
+        };
+
+        println!("{expanded}");
+
+        TokenStream::from(expanded)
+    }
+
     fn to_add_impl(&self) -> TokenStream {
         let (generics, fields, phantom_generics, full_generics) = (
             &self.generics,
@@ -147,6 +174,7 @@ impl TupInfo {
         let mut result = self.to_def();
         result.extend(self.to_new_impl());
         result.extend(self.to_default_impl());
+        result.extend(self.to_debug_impl());
         result.extend(self.to_add_impl());
         result
     }

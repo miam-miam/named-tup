@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use core::fmt::{Debug, DebugStruct, Formatter};
 use named_tup_derive;
 
 named_tup_derive::tup_struct_builder!();
@@ -58,4 +59,18 @@ impl CanCombine for ((), (), (), ()) {
     fn combine(self) -> () {
         ()
     }
+}
+
+pub trait ConvertToDebugStruct {
+    fn convert(&self, debug_struct: &mut DebugStruct);
+}
+
+impl<'a, T: core::fmt::Debug> ConvertToDebugStruct for (&'a T, NotUnit, &'static str) {
+    fn convert(&self, debug_struct: &mut DebugStruct) {
+        debug_struct.field(self.2, &self.0);
+    }
+}
+
+impl ConvertToDebugStruct for ((), (), &str) {
+    fn convert(&self, _debug_struct: &mut DebugStruct) {}
 }

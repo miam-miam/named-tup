@@ -10,5 +10,6 @@ fn main() {
     let item = item + tup!(banana: 42345);
 
     let test = item + tup!(lol: "Lol", count: "Hi");
+    println!("{test:?}");
     assert_eq!(test, tup!(count: "Yum", lol: "Lol", banana: 42345));
 }
