@@ -7,7 +7,9 @@ fn main() {
 
     count.count = 42345;
 
-    let item = count + tup!(banana: 2);
+    let banana = 2;
+
+    let item = count + tup!(banana, count: 5);
 
     let test = item + tup!(lol: "Lol", count: 8);
     println!("{test:?}");

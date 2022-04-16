@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
 use proc_macro2::{Ident, Span, TokenStream};
+use quote::ToTokens;
 use syn::parse::discouraged::Speculative;
 use syn::{
     parse::{Parse, ParseStream, Result},
@@ -15,7 +16,7 @@ pub struct TupElement {
     #[educe(Ord(method = "cmp"))]
     pub name: Ident,
     #[educe(Ord(ignore), PartialOrd(ignore), Eq(ignore), PartialEq(ignore))]
-    pub value: Expr,
+    pub value: Option<Expr>,
 }
 
 #[derive(Educe)]
@@ -42,8 +43,13 @@ fn cmp(a: &Ident, b: &Ident) -> Ordering {
 impl Parse for TupElement {
     fn parse(input: ParseStream) -> Result<Self> {
         let name = input.parse()?;
-        input.parse::<Token![:]>()?;
-        let value = input.parse()?;
+        let value = match input.peek(Token![:]) {
+            true => {
+                input.parse::<Token![:]>()?;
+                Some(input.parse()?)
+            }
+            false => None,
+        };
         Ok(TupElement { name, value })
     }
 }
@@ -109,7 +115,11 @@ impl TupInvocation {
             match values.peek() {
                 Some((val, _)) if val == identifier => {
                     let elem = values.next().unwrap();
-                    expressions.push(elem.1.value);
+                    expressions.push(
+                        elem.1
+                            .value
+                            .unwrap_or(syn::Expr::Verbatim(elem.1.name.to_token_stream())),
+                    );
                     identifiers.push(elem.1.name);
                     generics.push(syn::parse_str::<syn::Type>("crate::named_tup::NotUnit").unwrap())
                 }
