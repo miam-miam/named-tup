@@ -5,10 +5,9 @@ use quote::{ToTokens, TokenStreamExt};
 use syn::parse::{Parse, ParseStream};
 use syn::{Expr, Token, Type};
 
-#[allow(clippy::large_enum_variant)]
 pub enum TupDefault {
     None,
-    Unfinished(Expr),
+    Unfinished(Box<Expr>),
     Finished(Ident),
 }
 
@@ -90,7 +89,7 @@ impl Parse for TupType {
                         input.parse::<Token![=]>()?;
                         TupDefault::Finished(input.parse::<Ident>()?)
                     }
-                    false => TupDefault::Unfinished(input.parse::<Expr>()?),
+                    false => TupDefault::Unfinished(Box::new(input.parse::<Expr>()?)),
                 }
             }
             false => TupDefault::None,

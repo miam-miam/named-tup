@@ -1,6 +1,4 @@
-#[macro_use]
-extern crate named_tup;
-use named_tup::TupInto;
+use named_tup::{tup, tup_default, TupInto};
 
 fn main() {
     let count = tup!();

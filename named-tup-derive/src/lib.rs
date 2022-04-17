@@ -28,7 +28,7 @@ pub fn tup_struct_builder(_input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn tup(input: TokenStream) -> TokenStream {
     if input.is_empty() {
-        return quote! {crate::named_tup::Tup::default()}.into();
+        return quote! {named_tup::__private::Tup::default()}.into();
     }
     let input = parse_macro_input!(input as TupInvocation);
     TokenStream::from(input.into_token_stream())

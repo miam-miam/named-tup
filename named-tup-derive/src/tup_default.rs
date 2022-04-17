@@ -22,7 +22,7 @@ impl TupDefaultReplace {
                 #[allow(non_camel_case_types)]
                 #[derive(Default)]
                 struct #struct_name;
-                impl crate::named_tup::TupDefault for #struct_name {
+                impl named_tup::__private::TupDefault for #struct_name {
                     type Output = #expr_type;
 
                     fn default() -> Self::Output {

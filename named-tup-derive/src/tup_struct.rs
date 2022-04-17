@@ -80,8 +80,8 @@ impl TupInfo {
     fn to_default_impl(&self) -> TokenStream {
         let fields = &self.fields;
         let generics = (0..self.generics.len()).map(|_| syn::parse_str::<syn::Type>("()").unwrap());
-        let phantom_generics =
-            (0..self.phantom_generics.len()).map(|_| syn::parse_str::<syn::Type>("()").unwrap());
+        let phantom_generics = (0..self.phantom_generics.len())
+            .map(|_| syn::parse_str::<syn::Type>("crate::tup_struct::Unused").unwrap());
 
         let expanded = quote! {
             impl core::default::Default for Tup<#(#generics),*,#(#phantom_generics),*> {
@@ -107,12 +107,12 @@ impl TupInfo {
 
         let expanded = quote! {
             impl<#full_generics> core::fmt::Debug for Tup<#full_generics>
-                where #(#phantom_generics: crate::ConvertToDebugStruct + core::default::Default),*,
+                where #(#phantom_generics: crate::tup_struct::ConvertToDebugStruct + core::default::Default),*,
                 #(#generics: core::fmt::Debug),*
             {
                 fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                     let mut debug_struct = f.debug_struct("tup");
-                    #(crate::ConvertToDebugStruct::convert(<#phantom_generics as core::default::Default>::default(), &mut debug_struct, stringify!(#fields), &self.#fields);)*
+                    #(crate::tup_struct::ConvertToDebugStruct::convert(<#phantom_generics as core::default::Default>::default(), &mut debug_struct, stringify!(#fields), &self.#fields);)*
                     debug_struct.finish()
                 }
             }
@@ -147,15 +147,15 @@ impl TupInfo {
 
         let expanded = quote! {
             impl<#full_generics, #full_rhs_generics> core::ops::Add<Tup<#full_rhs_generics>> for Tup<#full_generics>
-                where #((#generics, #rhs_generics): crate::CanCombine<#phantom_generics, #rhs_phantom_generics>),*
+                where #((#generics, #rhs_generics): crate::combine::CanCombine<#phantom_generics, #rhs_phantom_generics>),*
             {
                 type Output = Tup<
-                    #(<(#generics, #rhs_generics) as crate::CanCombine<#phantom_generics, #rhs_phantom_generics>>::Output),*,
-                    #(<(#generics, #rhs_generics) as crate::CanCombine<#phantom_generics, #rhs_phantom_generics>>::PhantomOutput),*>;
+                    #(<(#generics, #rhs_generics) as crate::combine::CanCombine<#phantom_generics, #rhs_phantom_generics>>::Output),*,
+                    #(<(#generics, #rhs_generics) as crate::combine::CanCombine<#phantom_generics, #rhs_phantom_generics>>::PhantomOutput),*>;
 
                 fn add(self, rhs: Tup<#full_rhs_generics>) -> Self::Output{
                     Self::Output {
-                        #(#fields: crate::CanCombine::<#phantom_generics, #rhs_phantom_generics>::combine((self.#fields, rhs.#fields)) ),*,
+                        #(#fields: crate::combine::CanCombine::<#phantom_generics, #rhs_phantom_generics>::combine((self.#fields, rhs.#fields)) ),*,
                         _phantom: core::marker::PhantomData
                     }
                 }
@@ -181,14 +181,14 @@ impl TupInfo {
 
         // From<>
         let expanded = quote! {
-            impl<#full_generics, #(#new_phantom_generics),*> crate::TupFrom<Tup<#full_generics>> for Tup<#(<#generics as crate::CanInto<#phantom_generics, #new_phantom_generics>>::Output),*, #(#new_phantom_generics),*>
-                where #(#generics: crate::CanInto<#phantom_generics, #new_phantom_generics>),*
+            impl<#full_generics, #(#new_phantom_generics),*> crate::convert::TupFrom<Tup<#full_generics>> for Tup<#(<#generics as crate::convert::CanInto<#phantom_generics, #new_phantom_generics>>::Output),*, #(#new_phantom_generics),*>
+                where #(#generics: crate::convert::CanInto<#phantom_generics, #new_phantom_generics>),*
             {
                 //(), (), (), (), (), ()
                 //Self = (), i32, (), (), __count_33453526383602638678589360769295210241, ()
                 fn from_tup(current: Tup<#full_generics>) -> Self {
                     Self {
-                        #(#fields: crate::CanInto::<#phantom_generics, #new_phantom_generics>::into(current.#fields) ),*,
+                        #(#fields: crate::convert::CanInto::<#phantom_generics, #new_phantom_generics>::into(current.#fields) ),*,
                         _phantom: core::marker::PhantomData
                     }
                 }

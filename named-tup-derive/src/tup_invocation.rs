@@ -68,18 +68,20 @@ impl TupInvocation {
                             .unwrap_or_else(|| syn::Expr::Verbatim(elem.1.name.to_token_stream())),
                     );
                     identifiers.push(elem.1.name);
-                    generics.push(syn::parse_str::<syn::Type>("crate::named_tup::NotUnit").unwrap())
+                    generics
+                        .push(syn::parse_str::<syn::Type>("named_tup::__private::Used").unwrap())
                 }
                 _ => {
                     expressions.push(syn::parse_str::<syn::Expr>("()").unwrap());
                     identifiers.push(Ident::new(identifier, Span::call_site()));
-                    generics.push(syn::parse_str::<syn::Type>("()").unwrap())
+                    generics
+                        .push(syn::parse_str::<syn::Type>("named_tup::__private::Unused").unwrap())
                 }
             }
         }
 
         let expanded = quote! {
-            crate::named_tup::Tup::<#(#empty),* , #(#generics),*>::new( #(#expressions),* )
+            named_tup::__private::Tup::<#(#empty),* , #(#generics),*>::new( #(#expressions),* )
         };
         expanded
     }
@@ -99,7 +101,7 @@ impl TupInvocation {
                     types.push(elem.1.value);
                     match elem.1.default {
                         TupDefault::None => phantom_generics.push(
-                            syn::parse_str::<syn::Type>("crate::named_tup::NotUnit").unwrap(),
+                            syn::parse_str::<syn::Type>("named_tup::__private::Used").unwrap(),
                         ),
                         TupDefault::Unfinished(expr) => {
                             return quote_spanned! {expr.span() => compile_error("Use the #[tup_default] attribute to automatically derive a TupDefault struct for each expression.");}
@@ -110,13 +112,14 @@ impl TupInvocation {
                 }
                 _ => {
                     types.push(syn::parse_str::<syn::Type>("()").unwrap());
-                    phantom_generics.push(syn::parse_str::<syn::Type>("()").unwrap())
+                    phantom_generics
+                        .push(syn::parse_str::<syn::Type>("named_tup::__private::Unused").unwrap())
                 }
             }
         }
 
         let expanded = quote! {
-            crate::named_tup::Tup::<#(#types),* , #(#phantom_generics),*>
+            named_tup::__private::Tup::<#(#types),* , #(#phantom_generics),*>
         };
 
         expanded
