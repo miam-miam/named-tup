@@ -1,47 +1,67 @@
+use std::cmp::Ordering;
+
 use proc_macro2::{Ident, Punct, Spacing, TokenStream};
 use quote::{ToTokens, TokenStreamExt};
-use std::cmp::Ordering;
-use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
 use syn::{Expr, Token, Type};
 
+#[allow(clippy::large_enum_variant)]
 pub enum TupDefault {
     None,
     Unfinished(Expr),
     Finished(Ident),
 }
 
-#[derive(Educe)]
-#[educe(PartialEq, Eq, PartialOrd, Ord)]
 pub struct TupElement {
-    #[educe(Ord(method = "cmp"))]
     pub name: Ident,
-    #[educe(Ord(ignore), PartialOrd(ignore), Eq(ignore), PartialEq(ignore))]
     pub value: Option<Expr>,
 }
 
-#[derive(Educe)]
-#[educe(PartialEq, Eq, PartialOrd, Ord)]
+impl Ord for TupElement {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.name.cmp(&other.name)
+    }
+}
+
+impl PartialOrd for TupElement {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for TupElement {
+    fn eq(&self, other: &Self) -> bool {
+        self.name.eq(&other.name)
+    }
+}
+
+impl Eq for TupElement {}
+
 pub struct TupType {
-    #[educe(Ord(method = "cmp"))]
     pub name: Ident,
-    #[educe(Ord(ignore), PartialOrd(ignore), Eq(ignore), PartialEq(ignore))]
     pub value: Type,
-    #[educe(Ord(ignore), PartialOrd(ignore), Eq(ignore), PartialEq(ignore))]
     pub default: TupDefault,
 }
 
-fn cmp(a: &Ident, b: &Ident) -> Ordering {
-    let a = a.to_string();
-    let b = b.to_string();
-    if a > b {
-        Ordering::Less
-    } else if a < b {
-        Ordering::Greater
-    } else {
-        Ordering::Equal
+impl Ord for TupType {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.name.cmp(&other.name)
     }
 }
+
+impl PartialOrd for TupType {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for TupType {
+    fn eq(&self, other: &Self) -> bool {
+        self.name.eq(&other.name)
+    }
+}
+
+impl Eq for TupType {}
 
 impl Parse for TupElement {
     fn parse(input: ParseStream) -> syn::Result<Self> {

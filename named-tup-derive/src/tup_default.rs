@@ -1,8 +1,7 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{ToTokens, TokenStreamExt};
+use quote::ToTokens;
 use syn::parse::Parser;
 use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{Token, TypeMacro};
 use uuid::Uuid;
@@ -42,8 +41,8 @@ impl VisitMut for TupDefaultReplace {
         if i.mac.path.is_ident(&Ident::new("tup", Span::call_site())) {
             let parser = Punctuated::<TupType, Token![,]>::parse_terminated;
             if let Ok(mut v) = parser.parse2(i.mac.tokens.clone()) {
-                let new_expr = v.iter_mut().map(|mut elem| {
-                    self.produce_expr_struct(&mut elem);
+                let new_expr = v.iter_mut().map(|elem| {
+                    self.produce_expr_struct(elem);
                     elem.to_token_stream()
                 });
                 i.mac.tokens = quote!(#(#new_expr),*);

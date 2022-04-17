@@ -57,7 +57,7 @@ impl TupInfo {
             }
         };
 
-        TokenStream::from(expanded)
+        expanded
     }
 
     fn to_new_impl(&self) -> TokenStream {
@@ -74,7 +74,7 @@ impl TupInfo {
             }
         };
 
-        TokenStream::from(expanded)
+        expanded
     }
 
     fn to_default_impl(&self) -> TokenStream {
@@ -94,7 +94,7 @@ impl TupInfo {
             }
         };
 
-        TokenStream::from(expanded)
+        expanded
     }
 
     fn to_debug_impl(&self) -> TokenStream {
@@ -118,7 +118,7 @@ impl TupInfo {
             }
         };
 
-        TokenStream::from(expanded)
+        expanded
     }
 
     fn to_add_impl(&self) -> TokenStream {
@@ -162,7 +162,7 @@ impl TupInfo {
             }
         };
 
-        TokenStream::from(expanded)
+        expanded
     }
 
     fn to_into_impl(&self) -> TokenStream {
@@ -195,7 +195,7 @@ impl TupInfo {
             }
         };
 
-        TokenStream::from(expanded)
+        expanded
     }
 
     pub fn to_token_stream(&self) -> TokenStream {

@@ -1,12 +1,11 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::ToTokens;
 use syn::parse::discouraged::Speculative;
+use syn::spanned::Spanned;
 use syn::{
     parse::{Parse, ParseStream, Result},
-    Token, Type,
+    Token,
 };
-
-use syn::spanned::Spanned;
 
 use crate::tup_element::{TupDefault, TupElement, TupType};
 use crate::IDENTIFIERS;
@@ -42,7 +41,7 @@ impl Parse for TupInvocation {
 }
 
 impl TupInvocation {
-    pub fn to_token_stream(self) -> TokenStream {
+    pub fn into_token_stream(self) -> TokenStream {
         match self {
             TupInvocation::TupElement(e) => Self::produce_expr(e),
             TupInvocation::TupType(t) => Self::produce_type(t),
@@ -66,7 +65,7 @@ impl TupInvocation {
                     expressions.push(
                         elem.1
                             .value
-                            .unwrap_or(syn::Expr::Verbatim(elem.1.name.to_token_stream())),
+                            .unwrap_or_else(|| syn::Expr::Verbatim(elem.1.name.to_token_stream())),
                     );
                     identifiers.push(elem.1.name);
                     generics.push(syn::parse_str::<syn::Type>("crate::named_tup::NotUnit").unwrap())
@@ -82,8 +81,7 @@ impl TupInvocation {
         let expanded = quote! {
             crate::named_tup::Tup::<#(#empty),* , #(#generics),*>::new( #(#expressions),* )
         };
-
-        TokenStream::from(expanded)
+        expanded
     }
 
     fn produce_type(elements: Vec<TupType>) -> TokenStream {
@@ -121,6 +119,6 @@ impl TupInvocation {
             crate::named_tup::Tup::<#(#types),* , #(#phantom_generics),*>
         };
 
-        TokenStream::from(expanded)
+        expanded
     }
 }

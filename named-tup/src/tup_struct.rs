@@ -1,9 +1,6 @@
 #![allow(dead_code)]
 
 use core::fmt::{Debug, DebugStruct};
-use std::process::Output;
-
-use named_tup_derive;
 
 named_tup_derive::tup_struct_builder!();
 /// new to create empty tuple
@@ -51,9 +48,7 @@ pub trait CanInto<OLD, NEW> {
 
 impl CanInto<(), ()> for () {
     type Output = ();
-    fn into(self) -> () {
-        ()
-    }
+    fn into(self) {}
 }
 
 impl<T> CanInto<NotUnit, NotUnit> for T {
@@ -123,9 +118,7 @@ impl<T> CanCombine<(), NotUnit> for ((), T) {
 impl CanCombine<(), ()> for ((), ()) {
     type Output = ();
     type PhantomOutput = ();
-    fn combine(self) -> () {
-        ()
-    }
+    fn combine(self) {}
 }
 
 impl<T, D: TupDefault> CanCombine<NotUnit, D> for (T, T) {

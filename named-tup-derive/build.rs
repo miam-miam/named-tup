@@ -1,5 +1,5 @@
-use std::{env, fs};
 use std::path::{Path, PathBuf};
+use std::{env, fs};
 
 mod tup_finder;
 
@@ -18,12 +18,12 @@ pub fn main() {
     }
 }
 
-fn should_rewrite_file(gen_path: &PathBuf, new_file_contents: &String) -> bool {
+fn should_rewrite_file(gen_path: &Path, new_file_contents: &str) -> bool {
     if !gen_path.is_file() {
         return true;
     }
     let current_file_contents = fs::read_to_string(&gen_path).unwrap();
-    &current_file_contents != new_file_contents
+    current_file_contents != new_file_contents
 }
 
 fn create_file_contents(all_identifiers: Vec<String>) -> String {
