@@ -1,67 +1,15 @@
-use std::cmp::Ordering;
-
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::ToTokens;
 use syn::parse::discouraged::Speculative;
 use syn::{
     parse::{Parse, ParseStream, Result},
-    Expr, Token, Type,
+    Token, Type,
 };
 
+use syn::spanned::Spanned;
+
+use crate::tup_element::{TupDefault, TupElement, TupType};
 use crate::IDENTIFIERS;
-
-#[derive(Educe)]
-#[educe(PartialEq, Eq, PartialOrd, Ord)]
-pub struct TupElement {
-    #[educe(Ord(method = "cmp"))]
-    pub name: Ident,
-    #[educe(Ord(ignore), PartialOrd(ignore), Eq(ignore), PartialEq(ignore))]
-    pub value: Option<Expr>,
-}
-
-#[derive(Educe)]
-#[educe(PartialEq, Eq, PartialOrd, Ord)]
-pub struct TupType {
-    #[educe(Ord(method = "cmp"))]
-    pub name: Ident,
-    #[educe(Ord(ignore), PartialOrd(ignore), Eq(ignore), PartialEq(ignore))]
-    pub value: Type,
-}
-
-fn cmp(a: &Ident, b: &Ident) -> Ordering {
-    let a = a.to_string();
-    let b = b.to_string();
-    if a > b {
-        Ordering::Less
-    } else if a < b {
-        Ordering::Greater
-    } else {
-        Ordering::Equal
-    }
-}
-
-impl Parse for TupElement {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let name = input.parse()?;
-        let value = match input.peek(Token![:]) {
-            true => {
-                input.parse::<Token![:]>()?;
-                Some(input.parse()?)
-            }
-            false => None,
-        };
-        Ok(TupElement { name, value })
-    }
-}
-
-impl Parse for TupType {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let name = input.parse()?;
-        input.parse::<Token![:]>()?;
-        let value = input.parse()?;
-        Ok(TupType { name, value })
-    }
-}
 
 pub enum TupInvocation {
     TupElement(Vec<TupElement>),
@@ -151,8 +99,16 @@ impl TupInvocation {
                 Some((val, _)) if val == identifier => {
                     let elem = values.next().unwrap();
                     types.push(elem.1.value);
-                    phantom_generics
-                        .push(syn::parse_str::<syn::Type>("crate::named_tup::NotUnit").unwrap())
+                    match elem.1.default {
+                        TupDefault::None => phantom_generics.push(
+                            syn::parse_str::<syn::Type>("crate::named_tup::NotUnit").unwrap(),
+                        ),
+                        TupDefault::Unfinished(expr) => {
+                            return quote_spanned! {expr.span() => compile_error("Use the #[tup_default] attribute to automatically derive a TupDefault struct for each expression.");}
+                        }
+                        TupDefault::Finished(ident) => phantom_generics
+                            .push(syn::parse2::<syn::Type>(ident.to_token_stream()).unwrap()),
+                    }
                 }
                 _ => {
                     types.push(syn::parse_str::<syn::Type>("()").unwrap());

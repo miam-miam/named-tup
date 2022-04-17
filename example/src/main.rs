@@ -1,9 +1,12 @@
 #[macro_use]
 extern crate named_tup;
+use named_tup::TupInto;
 
 fn main() {
-    let count = tup!(count: 5);
-    let mut count = test(count);
+    let count = tup!();
+    let mut count = test(count.into_tup());
+
+    println!("{count:?}");
 
     count.count = 42345;
 
@@ -17,6 +20,7 @@ fn main() {
     assert_eq!(test, tup!(count: 8, lol: "Lol", banana: 2));
 }
 
-fn test(arg: tup!(count: i32)) -> tup!(count: i64) {
+#[tup_default]
+fn test(arg: tup!(count: i32 = 4)) -> tup!(count: i64) {
     tup!(count: arg.count.into())
 }

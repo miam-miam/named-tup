@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use core::fmt::{Debug, DebugStruct};
+use std::process::Output;
 
 use named_tup_derive;
 
@@ -16,16 +17,86 @@ named_tup_derive::tup_struct_builder!();
 /// Should allow you to do tup!(foo: 5, bar) where bar is an already defined var.
 /// Since everything is a struct we get named-tup-derive traits for free!
 
+pub trait TupInto<T> {
+    #[must_use]
+    fn into_tup(self) -> T;
+}
+
+pub trait TupFrom<T>: Sized {
+    #[must_use]
+    fn from_tup(_: T) -> Self;
+}
+
+impl<T, U> TupInto<U> for T
+where
+    U: TupFrom<T>,
+{
+    fn into_tup(self) -> U {
+        U::from_tup(self)
+    }
+}
+
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 pub struct NotUnit;
 
-pub trait CanCombine {
+pub trait TupDefault {
+    type Output;
+    fn default() -> Self::Output;
+}
+
+pub trait CanInto<OLD, NEW> {
+    type Output;
+    fn into(self) -> Self::Output;
+}
+
+impl CanInto<(), ()> for () {
+    type Output = ();
+    fn into(self) -> () {
+        ()
+    }
+}
+
+impl<T> CanInto<NotUnit, NotUnit> for T {
+    type Output = T;
+    fn into(self) -> T {
+        self
+    }
+}
+
+impl<D: TupDefault> CanInto<(), D> for () {
+    type Output = D::Output;
+    fn into(self) -> D::Output {
+        D::default()
+    }
+}
+
+impl<T, D> CanInto<NotUnit, D> for T
+where
+    D: TupDefault<Output = T>,
+{
+    type Output = T;
+    fn into(self) -> T {
+        self
+    }
+}
+
+impl<T, D> CanInto<D, NotUnit> for T
+where
+    D: TupDefault<Output = T>,
+{
+    type Output = T;
+    fn into(self) -> T {
+        self
+    }
+}
+
+pub trait CanCombine<P1, P2> {
     type Output;
     type PhantomOutput;
     fn combine(self) -> Self::Output;
 }
 
-impl<T> CanCombine for (T, T, NotUnit, NotUnit) {
+impl<T> CanCombine<NotUnit, NotUnit> for (T, T) {
     type Output = T;
     type PhantomOutput = NotUnit;
     fn combine(self) -> T {
@@ -33,7 +104,7 @@ impl<T> CanCombine for (T, T, NotUnit, NotUnit) {
     }
 }
 
-impl<T> CanCombine for (T, (), NotUnit, ()) {
+impl<T> CanCombine<NotUnit, ()> for (T, ()) {
     type Output = T;
     type PhantomOutput = NotUnit;
     fn combine(self) -> T {
@@ -41,7 +112,7 @@ impl<T> CanCombine for (T, (), NotUnit, ()) {
     }
 }
 
-impl<T> CanCombine for ((), T, (), NotUnit) {
+impl<T> CanCombine<(), NotUnit> for ((), T) {
     type Output = T;
     type PhantomOutput = NotUnit;
     fn combine(self) -> T {
@@ -49,11 +120,51 @@ impl<T> CanCombine for ((), T, (), NotUnit) {
     }
 }
 
-impl CanCombine for ((), (), (), ()) {
+impl CanCombine<(), ()> for ((), ()) {
     type Output = ();
     type PhantomOutput = ();
     fn combine(self) -> () {
         ()
+    }
+}
+
+impl<T, D: TupDefault> CanCombine<NotUnit, D> for (T, T) {
+    type Output = T;
+    type PhantomOutput = NotUnit;
+    fn combine(self) -> T {
+        self.0
+    }
+}
+
+impl<T, D1: TupDefault, D2: TupDefault> CanCombine<D1, D2> for (T, T) {
+    type Output = T;
+    type PhantomOutput = D2;
+    fn combine(self) -> T {
+        self.1
+    }
+}
+
+impl<T, D: TupDefault> CanCombine<D, NotUnit> for (T, T) {
+    type Output = T;
+    type PhantomOutput = NotUnit;
+    fn combine(self) -> T {
+        self.1
+    }
+}
+
+impl<T, D: TupDefault> CanCombine<(), D> for ((), T) {
+    type Output = T;
+    type PhantomOutput = D;
+    fn combine(self) -> T {
+        self.1
+    }
+}
+
+impl<T, D: TupDefault> CanCombine<D, ()> for (T, ()) {
+    type Output = T;
+    type PhantomOutput = D;
+    fn combine(self) -> T {
+        self.0
     }
 }
 
@@ -62,6 +173,13 @@ pub trait ConvertToDebugStruct {
 }
 
 impl ConvertToDebugStruct for NotUnit {
+    fn convert(_: Self, debug_struct: &mut DebugStruct, name: &str, value: &dyn Debug) {
+        debug_struct.field(name, value);
+    }
+}
+
+//TODO: Make a nice Debug for default.
+impl<T: TupDefault> ConvertToDebugStruct for T {
     fn convert(_: Self, debug_struct: &mut DebugStruct, name: &str, value: &dyn Debug) {
         debug_struct.field(name, value);
     }

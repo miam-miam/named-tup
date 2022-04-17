@@ -80,8 +80,8 @@ impl TupInfo {
     fn to_default_impl(&self) -> TokenStream {
         let fields = &self.fields;
         let generics = (0..self.generics.len()).map(|_| syn::parse_str::<syn::Type>("()").unwrap());
-        let phantom_generics = (0..self.phantom_generics.len())
-            .map(|_| syn::parse_str::<syn::Type>("crate::NotUnit").unwrap());
+        let phantom_generics =
+            (0..self.phantom_generics.len()).map(|_| syn::parse_str::<syn::Type>("()").unwrap());
 
         let expanded = quote! {
             impl core::default::Default for Tup<#(#generics),*,#(#phantom_generics),*> {
@@ -147,16 +147,48 @@ impl TupInfo {
 
         let expanded = quote! {
             impl<#full_generics, #full_rhs_generics> core::ops::Add<Tup<#full_rhs_generics>> for Tup<#full_generics>
-                where #((#generics, #rhs_generics, #phantom_generics, #rhs_phantom_generics): crate::CanCombine),*,
-                      #(#phantom_generics: core::default::Default, #rhs_phantom_generics: core::default::Default),*
+                where #((#generics, #rhs_generics): crate::CanCombine<#phantom_generics, #rhs_phantom_generics>),*
             {
                 type Output = Tup<
-                    #(<(#generics, #rhs_generics, #phantom_generics, #rhs_phantom_generics) as crate::CanCombine>::Output),*,
-                    #(<(#generics, #rhs_generics, #phantom_generics, #rhs_phantom_generics) as crate::CanCombine>::PhantomOutput),*>;
+                    #(<(#generics, #rhs_generics) as crate::CanCombine<#phantom_generics, #rhs_phantom_generics>>::Output),*,
+                    #(<(#generics, #rhs_generics) as crate::CanCombine<#phantom_generics, #rhs_phantom_generics>>::PhantomOutput),*>;
 
                 fn add(self, rhs: Tup<#full_rhs_generics>) -> Self::Output{
                     Self::Output {
-                        #(#fields: (self.#fields, rhs.#fields, <#phantom_generics as core::default::Default>::default(), <#rhs_phantom_generics as core::default::Default>::default()).combine()),*,
+                        #(#fields: crate::CanCombine::<#phantom_generics, #rhs_phantom_generics>::combine((self.#fields, rhs.#fields)) ),*,
+                        _phantom: core::marker::PhantomData
+                    }
+                }
+            }
+        };
+
+        TokenStream::from(expanded)
+    }
+
+    fn to_into_impl(&self) -> TokenStream {
+        let (generics, fields, full_generics, phantom_generics) = (
+            &self.generics,
+            &self.fields,
+            &self.full_generics,
+            &self.phantom_generics,
+        );
+
+        let new_phantom_generics_stored: Vec<Ident> = phantom_generics
+            .iter()
+            .map(|g| format_ident!("NEW{g}"))
+            .collect();
+        let new_phantom_generics = &new_phantom_generics_stored;
+
+        // From<>
+        let expanded = quote! {
+            impl<#full_generics, #(#new_phantom_generics),*> crate::TupFrom<Tup<#full_generics>> for Tup<#(<#generics as crate::CanInto<#phantom_generics, #new_phantom_generics>>::Output),*, #(#new_phantom_generics),*>
+                where #(#generics: crate::CanInto<#phantom_generics, #new_phantom_generics>),*
+            {
+                //(), (), (), (), (), ()
+                //Self = (), i32, (), (), __count_33453526383602638678589360769295210241, ()
+                fn from_tup(current: Tup<#full_generics>) -> Self {
+                    Self {
+                        #(#fields: crate::CanInto::<#phantom_generics, #new_phantom_generics>::into(current.#fields) ),*,
                         _phantom: core::marker::PhantomData
                     }
                 }
@@ -172,6 +204,7 @@ impl TupInfo {
         result.extend(self.to_default_impl());
         result.extend(self.to_debug_impl());
         result.extend(self.to_add_impl());
+        result.extend(self.to_into_impl());
         result
     }
 }
