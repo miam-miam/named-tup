@@ -18,7 +18,7 @@ mod tup_element;
 mod tup_invocation;
 mod tup_struct;
 
-const IDENTIFIERS: &[&str] = &include!(concat!(env!("OUT_DIR"), "/identifiers.in"));
+const IDENTIFIERS: &[&str] = include!(concat!(env!("OUT_DIR"), "/identifiers.in"));
 
 #[proc_macro]
 pub fn tup_struct_builder(_input: TokenStream) -> TokenStream {

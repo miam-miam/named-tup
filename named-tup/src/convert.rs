@@ -1,6 +1,3 @@
-use core::marker::Sized;
-
-use crate::tup_struct;
 use crate::tup_struct::{TupDefault, Unused, Used};
 
 /// new to create empty tuple
