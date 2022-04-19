@@ -1,16 +1,32 @@
-use std::path::{Path, PathBuf};
+use std::collections::HashSet;
+use std::path::Path;
 use std::{env, fs};
+
+use inwelling::Opts;
 
 mod tup_finder;
 
 pub fn main() {
-    let files = get_rust_files();
-    let all_identifiers = tup_finder::get_all_identifiers(files);
+    let mut all_identifiers = HashSet::new();
+
+    inwelling::inwelling(Opts {
+        watch_manifest: true,
+        watch_rs_files: true,
+        dump_rs_paths: true,
+    })
+    .sections
+    .into_iter()
+    .for_each(|section| {
+        section.rs_paths.unwrap().into_iter().for_each(|rs_path| {
+            tup_finder::get_all_identifiers(&rs_path, &mut all_identifiers);
+        })
+    });
+
+    let mut all_identifiers: Vec<String> = all_identifiers.into_iter().collect();
+    all_identifiers.sort();
 
     let out_dir = &env::var("OUT_DIR").unwrap();
-    dbg!(&out_dir);
     let gen_path = Path::new(out_dir).join("identifiers.in");
-    dbg!(&gen_path);
 
     let new_file_contents = format!("&{all_identifiers:?}");
     if should_rewrite_file(&gen_path, &new_file_contents) {
@@ -24,28 +40,4 @@ fn should_rewrite_file(gen_path: &Path, new_file_contents: &str) -> bool {
     }
     let current_file_contents = fs::read_to_string(&gen_path).unwrap();
     current_file_contents != new_file_contents
-}
-
-fn get_rust_files() -> Vec<PathBuf> {
-    let src = env::var("NAMED_TUPS_DIR").expect(
-        "Environment variable NAMED_TUPS_DIR is not set, please set it to your src directory.",
-    );
-    println!("cargo:rerun-if-changed={src}");
-    let mut directories = vec![PathBuf::new().join(&src)];
-    let mut files = vec![];
-
-    while let Some(directory) = directories.pop() {
-        for entry in fs::read_dir(directory).unwrap() {
-            let path = entry.unwrap().path();
-
-            if path.is_dir() {
-                directories.push(path);
-            } else if let Some(extension) = path.extension() {
-                if extension == "rs" {
-                    files.push(path);
-                }
-            }
-        }
-    }
-    files
 }

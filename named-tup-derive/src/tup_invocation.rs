@@ -80,6 +80,11 @@ impl TupInvocation {
             }
         }
 
+        assert!(
+            values.next().is_none(),
+            "tup! invocation contained identifiers that did not match to any known identifiers"
+        );
+
         let expanded = quote! {
             named_tup::__private::Tup::<#(#empty),* , #(#generics),*>::new( #(#expressions),* )
         };
@@ -117,6 +122,11 @@ impl TupInvocation {
                 }
             }
         }
+
+        assert!(
+            values.next().is_none(),
+            "tup! invocation contained identifiers that did not match to any known identifiers"
+        );
 
         let expanded = quote! {
             named_tup::__private::Tup::<#(#types),* , #(#phantom_generics),*>

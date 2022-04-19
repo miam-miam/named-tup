@@ -2,12 +2,15 @@ use core::fmt::{Debug, DebugStruct};
 
 named_tup_derive::tup_struct_builder!();
 
+/// A Unit Struct indicating that an argument has been set
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 pub struct Used;
 
+/// A Unit Struct indicating that an argument has not been set
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 pub struct Unused;
 
+/// A trait that is implemented by a unit struct that generates a default value
 pub trait TupDefault {
     type Output;
     fn default() -> Self::Output;

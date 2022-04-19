@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 
 use pest::Parser;
 
@@ -8,22 +8,15 @@ use pest::Parser;
 #[grammar = "../grammar.pest"]
 struct TupFinder;
 
-pub fn get_all_identifiers(files: Vec<PathBuf>) -> Vec<String> {
-    let mut all_identifiers = HashSet::new();
-    dbg!(&files);
-    for file in files {
-        let code = fs::read_to_string(file).unwrap();
+pub fn get_all_identifiers(file_path: &Path, all_identifiers: &mut HashSet<String>) {
+    let code = fs::read_to_string(file_path).unwrap();
 
-        let tuples = TupFinder::parse(Rule::file, &code);
+    let tuples = TupFinder::parse(Rule::file, &code);
 
-        if let Ok(tuples) = tuples {
-            for tuple in tuples {
-                let ident = tuple.as_str();
-                all_identifiers.insert(ident.to_string());
-            }
+    if let Ok(tuples) = tuples {
+        for tuple in tuples {
+            let ident = tuple.as_str();
+            all_identifiers.insert(ident.to_string());
         }
     }
-    let mut all_identifiers: Vec<String> = all_identifiers.into_iter().collect();
-    all_identifiers.sort();
-    all_identifiers
 }

@@ -13,6 +13,7 @@ use syn::{parse_macro_input, File};
 use crate::tup_default::TupDefaultReplace;
 use crate::tup_invocation::TupInvocation;
 
+mod sealed;
 mod tup_default;
 mod tup_element;
 mod tup_invocation;
@@ -23,6 +24,11 @@ const IDENTIFIERS: &[&str] = include!(concat!(env!("OUT_DIR"), "/identifiers.in"
 #[proc_macro]
 pub fn tup_struct_builder(_input: TokenStream) -> TokenStream {
     TokenStream::from(tup_struct::TupInfo::new().to_token_stream())
+}
+
+#[proc_macro]
+pub fn sealed_trait_builder(_input: TokenStream) -> TokenStream {
+    TokenStream::from(sealed::to_token_stream())
 }
 
 #[proc_macro]
