@@ -29,15 +29,18 @@
 //! # Examples
 //! ```
 //! use named_tup::tup;
-//!
 //! let count = 5;
+//!
 //! // This will have the type of tup!(count: i32, ingredients: [&str; 3], eggs: bool)
 //! let cakes = tup!(count, ingredients: ["milk", "flower", "sugar"], eggs: true);
+//!
 //! // We can just add a price afterwards
-//! // And now it has the type of tup!(eggs: bool, ingredients: [&str; 3], count: i32, price: i32)
 //! let mut cakes = cakes + tup!(price: 3);
+//! // And now it has the type of tup!(eggs: bool, ingredients: [&str; 3], count: i32, price: i32)
+//!
 //! // Once the price is in the tup we can just update it!
 //! cakes.price = 4;
+//!
 //! // Will print tup { count: 5, eggs: true, ingredients: ["milk", "flower", "sugar"], price: 4 }
 //! println!("{cakes:?}");
 //! ```
@@ -52,6 +55,7 @@
 //! use named_tup::{tup, tup_default, TupInto};
 //!
 //! let options = tup!(read: false, write: true);
+//!
 //! // Converts to tup!(read: false, write: true, create: false, timeout: 5)
 //! open_file("main.rs", options.into_tup());
 //!
@@ -72,9 +76,145 @@
 #![doc(html_root_url = "https://docs.rs/named_tup/0.1.0")]
 
 pub use convert::{TupFrom, TupInto};
-/// Test
+/// The whole point.
+///
+/// Produces a named tuple, a struct that
+/// can contain a set of named arguments. Each named tuple can be added together or even
+/// default to a value if it does not already exist.
+///
+/// There are two types of call notations depending on whether the [`tup!`] macro is
+/// used to define a type or an expression.
+///
+/// <br>
+///
+/// # tup as an expression
+///
+/// In it's most basic form a [`tup!`] is formed just like a struct instantiation.
+/// ```rust
+/// # use named_tup::tup;
+/// let mut farm = tup!(horse: 4, chicken: 3, ants: 999_999_999);
+///
+/// assert_eq!(farm.horse, 4);
+/// assert_eq!(farm.chicken, 3);
+///
+/// // Got some ant killer
+/// farm.ants = 0;
+/// assert_eq!(farm.ants, 0);
+/// ```
+///
+/// And just like it, [`tup!`] can use pre-existing variables.
+/// ```rust
+/// # use named_tup::tup;
+/// let kingfisher = true;
+/// let eagle = false;
+/// let nest = tup!(kingfisher, toucan: true, eagle);
+///
+/// assert_eq!(nest, tup!(kingfisher: true, eagle: false, toucan: true))
+/// ```
+///
+/// <br>
+///
+/// # tup as a type
+///
+/// However in certain cases defining the type exactly is necessary.
+/// In this case the expression is replaced by a type.
+///
+/// ```rust
+/// # use named_tup::tup;
+/// let recipe: tup!(eggs: u8, milk: &str, flour: f32) = tup!(milk: "500ml", eggs: 4, flour: 203.6);
+/// let person = tup!(name: "Joe", blue_eyes: true);
+/// face_recognizer(vec![person]);
+///
+/// fn face_recognizer(
+///     people: Vec<tup!(name: &'static str, blue_eyes: bool)>,
+/// ) -> tup!(confidence: f64, name: &'static str) {
+///     tup!(confidence: 0.3, name: "Joe")
+/// }
+/// ```
+///
+/// The type macro is also used to specify defaults using the [`#[tup_default]`](tup_default)
+/// attribute and the [`TupInto`] trait to change the type.
+///
+/// ```rust
+/// # use named_tup::{tup, tup_default, TupInto};
+/// #[tup_default]
+/// pub fn main() {
+///     # let input = false;
+///     let result: tup!(foo: i32 = 3, bar: Option<i32> = None) = match input {
+///         true => tup!(foo: 4).into_tup(),
+///         false => tup!(bar: Some(4)).into_tup(),
+///     };
+///     
+///     read(tup!().into_tup());
+/// }
+///
+/// #[tup_default]
+/// fn read(books: tup!(names: &'static [&'static str] = &[], ETA: i32 = 0)) {
+///     // Read
+/// }
+/// ```
+///
+/// <br>
+///
+/// # Tup type
+///
+/// Each [`tup!`] call produces a Tup type, the type itself eagerly implements
+/// [`Copy`], [`Clone`], [`Eq`], [`PartialEq`], [`Ord`], [`PartialOrd`], [`Hash`]
+/// assuming all the types it contains implement them. (Ord/PartialOrd is in lexicographic ordering).
+/// As well as this a [`Default`] and [`Debug`] trait is always implemented.
+///
+/// ```rust
+/// # use named_tup::tup;
+/// assert_eq!(tup!(rooms: ["garden", "shed"]), tup!(rooms: ["garden", "shed"]));
+///
+/// let rooms = vec!["bathroom", "bedroom"];
+/// let non_copy = tup!(rooms);
+/// assert_eq!(non_copy, non_copy.clone());
+///
+/// let copy = tup!(cows: 4, bulls: 2);
+/// drop(copy);
+/// assert!(copy > tup!(cows: 5, bulls: 1));
+///
+/// // Will print tup { farmer: "Joe", married: true }
+/// println!("{:?}", tup!( married: true, farmer: "Joe"));
+/// ```
+///
+/// Finally the [`Add`](core::ops::Add) trait is implemented so that you can transform between
+/// different tup types. If both sides contain a certain argument, precedence is given to the
+/// right hand side.
+/// ```rust
+/// # use named_tup::tup;
+/// let farm1 = tup!(roosters: 4, dragons: 7, dogs: 1);
+/// let farm2 = tup!(hens: 56, dogs: 3);
+/// let combined_farm = farm1 + farm2;
+///
+/// assert_eq!(combined_farm, tup!(roosters: 4, hens: 56, dragons: 7, dogs: 3));
+/// ```
 pub use named_tup_derive::tup;
-/// Test2
+/// An attribute macro that allows you to derive defaults.
+///
+/// Defaults are added to any [`tup!`] macro in the type position by using the equals sign.
+/// [`#[tup_default]`](tup_default) will then change the invocation so that it is a part of the
+/// type information itself. As such [`#[tup_default]`](tup_default) needs to be used on any
+/// item that uses defaults in a [`tup!`] invocation. Since a defaulted Tup is part of
+/// the type [`TupInto`] must be used to convert it.
+///
+/// ```rust
+/// # use named_tup::{TupInto, tup, tup_default};
+/// #[tup_default]
+/// pub fn main() {
+///     let default: tup!(foo: i32 = 2) = tup!().into_tup();
+///     let result = default_to_non(tup!().into_tup());
+///
+///     assert_eq!(result, tup!(foo: 2));
+///     assert_eq!(result.foo, default.foo);
+/// }
+/// #[tup_default]
+/// fn default_to_non(n_tup: tup!(foo: i32 = 2)) -> tup!(foo: i32) {
+///     n_tup.into_tup()
+/// }
+///
+/// ```
 pub use named_tup_derive::tup_default;
 
 mod combine;
