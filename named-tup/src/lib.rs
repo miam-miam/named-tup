@@ -160,7 +160,9 @@ pub use convert::{TupFrom, TupInto};
 ///
 /// Each [`tup!`] call produces a Tup type, the type itself eagerly implements
 /// [`Copy`], [`Clone`], [`Eq`], [`PartialEq`], [`Ord`], [`PartialOrd`], [`Hash`]
-/// assuming all the types it contains implement them. (Ord/PartialOrd is in lexicographic ordering).
+/// assuming all the types it contains implement them. (Ord/PartialOrd is in lexicographic
+/// ordering and Ord/Eq cannot be implemented on types that use different defaults
+/// so if this is the case just convert them to non-defaulted versions before using them).
 /// As well as this a [`Default`] and [`Debug`] trait is always implemented.
 ///
 /// ```rust

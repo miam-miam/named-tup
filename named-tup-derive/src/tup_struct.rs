@@ -57,7 +57,7 @@ impl TupInfo {
         );
 
         let expanded = quote! {
-            #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+            #[derive(Copy, Clone)]
             #[must_use]
             pub struct Tup<#full_generics> {
                 #(pub #fields: #generics),* #coma
@@ -231,6 +231,130 @@ impl TupInfo {
         expanded
     }
 
+    fn to_eq_impl(&self) -> TokenStream {
+        let (generics, fields, full_generics, phantom_generics, coma) = (
+            &self.generics,
+            &self.fields,
+            &self.full_generics,
+            &self.phantom_generics,
+            &self.coma,
+        );
+
+        let rhs_phantom_generics_stored: Vec<Ident> = phantom_generics
+            .iter()
+            .map(|g| format_ident!("RHS{g}"))
+            .collect();
+        let rhs_phantom_generics = &rhs_phantom_generics_stored;
+
+        let generics_rhs_phantom = quote! {#(#generics),* #coma #(#rhs_phantom_generics),*};
+        let all_phantom = quote! {#(#phantom_generics),* #coma #(#rhs_phantom_generics),*};
+
+        let return_stmt_eq = match self.fields.is_empty() {
+            true => quote! {true},
+            false => quote! {#((&self.#fields) == (&other.#fields))&&*},
+        };
+
+        let return_stmt_ne = match self.fields.is_empty() {
+            true => quote! {false},
+            false => quote! {#((&self.#fields) != (&other.#fields))||*},
+        };
+
+        let expanded = quote! {
+            impl<#(#generics: core::cmp::Eq),* #coma #(#phantom_generics),*> core::cmp::Eq for Tup<#full_generics> {}
+
+            impl<#(#generics: core::cmp::PartialEq),* #coma #all_phantom> core::cmp::PartialEq<Tup<#generics_rhs_phantom>> for Tup<#full_generics>
+            {
+                fn eq(&self, other: &Tup<#generics_rhs_phantom>) -> bool {
+                    #return_stmt_eq
+                }
+
+                fn ne(&self, other: &Tup<#generics_rhs_phantom>) -> bool {
+                    #return_stmt_ne
+                }
+            }
+        };
+        expanded
+    }
+
+    // Cannot implement true ord as that requires the same type.
+    fn to_ord_impl(&self) -> TokenStream {
+        let (generics, fields, full_generics, phantom_generics, coma) = (
+            &self.generics,
+            &self.fields,
+            &self.full_generics,
+            &self.phantom_generics,
+            &self.coma,
+        );
+
+        let rhs_phantom_generics_stored: Vec<Ident> = phantom_generics
+            .iter()
+            .map(|g| format_ident!("RHS{g}"))
+            .collect();
+        let rhs_phantom_generics = &rhs_phantom_generics_stored;
+
+        let generics_rhs_phantom = quote! {#(#generics),* #coma #(#rhs_phantom_generics),*};
+        let all_phantom = quote! {#(#phantom_generics),* #coma #(#rhs_phantom_generics),*};
+
+        let mut return_stmt_ord = quote! {core::cmp::Ordering::Equal};
+        for field in fields.into_iter().rev() {
+            return_stmt_ord = quote! {
+                match core::cmp::Ord::cmp(&self.#field, &other.#field) {
+                    core::cmp::Ordering::Equal => {
+                        #return_stmt_ord
+                    },
+                    cmp => cmp,
+                }
+            };
+        }
+
+        let mut return_stmt_part = quote! {core::option::Option::Some(core::cmp::Ordering::Equal)};
+        for field in fields.into_iter().rev() {
+            return_stmt_part = quote! {
+                match ::core::cmp::PartialOrd::partial_cmp(&self.#field, &other.#field) {
+                    core::option::Option::Some(core::cmp::Ordering::Equal) => {
+                        #return_stmt_part
+                    },
+                    cmp => cmp,
+                }
+            };
+        }
+
+        let expanded = quote! {
+            impl<#(#generics: core::cmp::Ord),* #coma #(#phantom_generics),*> core::cmp::Ord for Tup<#full_generics> {
+                fn cmp(&self, other: &Tup<#full_generics>) -> core::cmp::Ordering {
+                    #return_stmt_ord
+                }
+            }
+
+            impl<#(#generics: core::cmp::PartialOrd),* #coma #all_phantom> core::cmp::PartialOrd<Tup<#generics_rhs_phantom>> for Tup<#full_generics> {
+                fn partial_cmp(&self, other: &Tup<#generics_rhs_phantom>) -> core::option::Option<core::cmp::Ordering> {
+                    #return_stmt_part
+                }
+            }
+        };
+        expanded
+    }
+
+    fn to_hash_impl(&self) -> TokenStream {
+        let (generics, fields, full_generics, phantom_generics, coma) = (
+            &self.generics,
+            &self.fields,
+            &self.full_generics,
+            &self.phantom_generics,
+            &self.coma,
+        );
+
+        let expanded = quote! {
+            impl<#(#generics: core::hash::Hash),* #coma #(#phantom_generics),*> core::hash::Hash for Tup<#full_generics>
+            {
+                fn hash<__H: core::hash::Hasher>(&self, state: &mut __H) {
+                    #(core::hash::Hash::hash(&self.#fields, state));*
+                }
+            }
+        };
+        expanded
+    }
+
     pub fn to_token_stream(&self) -> TokenStream {
         let mut result = self.to_def();
         result.extend(self.to_new_impl());
@@ -238,6 +362,9 @@ impl TupInfo {
         result.extend(self.to_debug_impl());
         result.extend(self.to_add_impl());
         result.extend(self.to_into_impl());
+        result.extend(self.to_eq_impl());
+        result.extend(self.to_ord_impl());
+        result.extend(self.to_hash_impl());
         result
     }
 }

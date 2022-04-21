@@ -18,10 +18,9 @@ impl TupDefaultReplace {
         if let TupDefault::Unfinished(expr) = &elem.default {
             let struct_name = format_ident!("__{}_{}", elem.name, Uuid::new_v4().as_u128());
             let expr_type = &elem.value;
-            //TODO: Generate #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
             let struct_tokens = quote! {
                 #[allow(non_camel_case_types)]
-                #[derive(Default)]
+                #[derive(Default, Copy, Clone)]
                 struct #struct_name;
                 impl named_tup::__private::TupDefault for #struct_name {
                     type Output = #expr_type;
