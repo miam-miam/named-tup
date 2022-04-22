@@ -88,6 +88,7 @@ where
     }
 }
 
+/// A helper trait to figure out if a tup field can transformed.
 pub trait CanInto<OLD, NEW> {
     type Output;
     fn into(self) -> Self::Output;

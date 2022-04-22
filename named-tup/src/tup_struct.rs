@@ -1,4 +1,4 @@
-use core::fmt::{Debug, DebugStruct};
+use core::fmt::{Debug, DebugStruct, Formatter};
 
 named_tup_derive::tup_struct_builder!();
 
@@ -16,6 +16,7 @@ pub trait TupDefault {
     fn default() -> Self::Output;
 }
 
+/// A trait that allows to convert a Tup to a Debug version depending on the phantom type.
 pub trait ConvertToDebugStruct {
     fn convert(_: Self, debug_struct: &mut DebugStruct, name: &str, value: &dyn Debug);
 }
@@ -26,10 +27,23 @@ impl ConvertToDebugStruct for Used {
     }
 }
 
-//TODO: Make a nice Debug for default.
-impl<T: TupDefault> ConvertToDebugStruct for T {
+/// A new type used to hijack the Debug implementation for the debug_struct
+struct DebugHijacker<'a>(&'a dyn Debug, &'a dyn Debug);
+
+impl<'a> Debug for DebugHijacker<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        self.0.fmt(f)?;
+        f.write_str(" = ")?;
+        self.1.fmt(f)
+    }
+}
+
+impl<T: TupDefault> ConvertToDebugStruct for T
+where
+    T::Output: Debug,
+{
     fn convert(_: Self, debug_struct: &mut DebugStruct, name: &str, value: &dyn Debug) {
-        debug_struct.field(name, value);
+        debug_struct.field(name, &DebugHijacker(value, &T::default()));
     }
 }
 

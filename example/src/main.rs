@@ -19,6 +19,6 @@ fn main() {
 }
 
 #[tup_default]
-fn test(arg: tup!(count: i32 = 4)) -> tup!(count: i64) {
-    tup!(count: arg.count.into())
+fn test(arg: tup!(count: i32 = 4)) -> tup!(count: i64 = 3) {
+    tup!(count: <i64>::from(arg.count)).into_tup()
 }
