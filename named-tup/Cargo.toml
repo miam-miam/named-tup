@@ -2,7 +2,7 @@
 name = "named-tup"
 version = "0.1.0"  # don't forget to update html_root_url and version in readme for breaking changes
 edition = "2021"
-authors = ["miam-miam100 <MiamMiam100@mailbox.org>"]
+authors = ["miam-miam100 <MiamMiam@mailbox.org>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/miam-miam100/named-tup"
 readme = "README.md"
