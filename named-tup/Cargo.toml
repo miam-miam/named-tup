@@ -21,7 +21,6 @@ pest_derive = "2.1.0"
 default = []
 dev-test = [] # Should only be used for testing this crate as it adds extra tup identifiers that are used in the tests
 
-
 [package.metadata.inwelling-named-tup-derive]
 feature = "dev-test"
 
