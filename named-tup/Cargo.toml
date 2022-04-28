@@ -5,7 +5,6 @@ edition = "2021"
 authors = ["miam-miam100 <MiamMiam100@mailbox.org>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/miam-miam100/named-tup"
-documentation = "https://docs.rs/named-tup/"
 readme = "README.md"
 description = "Create named tuples using the tup!() macro."
 keywords = ["named-arguments", "default-arguments", "named-tuple", "tup"]
@@ -28,6 +27,3 @@ feature = "dev-test"
 
 [package.metadata.inwelling]
 named-tup-derive = true
-
-[package.metadata.docs.rs]
-targets = ["x86_64-unknown-linux-gnu"]

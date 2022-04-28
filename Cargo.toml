@@ -2,5 +2,4 @@
 members = [
     "named-tup",
     "named-tup-derive",
-    "example",
 ]

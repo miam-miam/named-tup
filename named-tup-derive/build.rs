@@ -30,7 +30,8 @@ pub fn main() {
 
     let new_file_contents = format!("&{all_identifiers:?}");
     if should_rewrite_file(&gen_path, &new_file_contents) {
-        fs::write(&gen_path, new_file_contents).unwrap();
+        fs::write(&gen_path, new_file_contents)
+            .expect(&*format!("Could not write to file at: {gen_path:?}"));
     }
 }
 
@@ -38,6 +39,7 @@ fn should_rewrite_file(gen_path: &Path, new_file_contents: &str) -> bool {
     if !gen_path.is_file() {
         return true;
     }
-    let current_file_contents = fs::read_to_string(&gen_path).unwrap();
+    let current_file_contents =
+        fs::read_to_string(&gen_path).expect(&*format!("Could not read to file at: {gen_path:?}"));
     current_file_contents != new_file_contents
 }

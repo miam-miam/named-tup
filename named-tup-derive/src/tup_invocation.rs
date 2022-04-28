@@ -4,7 +4,7 @@ use syn::parse::discouraged::Speculative;
 use syn::spanned::Spanned;
 use syn::{
     parse::{Parse, ParseStream, Result},
-    Token,
+    parse_quote, Token, Type,
 };
 
 use crate::tup_element::{TupDefault, TupElement, TupType};
@@ -51,7 +51,7 @@ impl TupInvocation {
     fn produce_expr(elements: Vec<TupElement>) -> TokenStream {
         let mut expressions = vec![];
         let mut identifiers = vec![];
-        let mut generics = vec![];
+        let mut generics: Vec<Type> = vec![];
         let empty = (0..IDENTIFIERS.len()).map(|_| Ident::new("_", Span::call_site()));
         let mut values = elements
             .into_iter()
@@ -68,14 +68,12 @@ impl TupInvocation {
                             .unwrap_or_else(|| syn::Expr::Verbatim(elem.1.name.to_token_stream())),
                     );
                     identifiers.push(elem.1.name);
-                    generics
-                        .push(syn::parse_str::<syn::Type>("named_tup::__private::Used").unwrap())
+                    generics.push(parse_quote!(named_tup::__private::Used))
                 }
                 _ => {
-                    expressions.push(syn::parse_str::<syn::Expr>("()").unwrap());
+                    expressions.push(parse_quote!(()));
                     identifiers.push(Ident::new(identifier, Span::call_site()));
-                    generics
-                        .push(syn::parse_str::<syn::Type>("named_tup::__private::Unused").unwrap())
+                    generics.push(parse_quote!(named_tup::__private::Unused))
                 }
             }
         }
@@ -105,9 +103,9 @@ impl TupInvocation {
                     let elem = values.next().unwrap();
                     types.push(elem.1.value);
                     match elem.1.default {
-                        TupDefault::None => phantom_generics.push(
-                            syn::parse_str::<syn::Type>("named_tup::__private::Used").unwrap(),
-                        ),
+                        TupDefault::None => {
+                            phantom_generics.push(parse_quote!(named_tup::__private::Used))
+                        }
                         TupDefault::Unfinished(expr) => {
                             return quote_spanned! {expr.span() => compile_error("Use the #[tup_default] attribute to automatically derive a TupDefault struct for each expression.");}
                         }
@@ -116,9 +114,8 @@ impl TupInvocation {
                     }
                 }
                 _ => {
-                    types.push(syn::parse_str::<syn::Type>("()").unwrap());
-                    phantom_generics
-                        .push(syn::parse_str::<syn::Type>("named_tup::__private::Unused").unwrap())
+                    types.push(parse_quote!(()));
+                    phantom_generics.push(parse_quote!(named_tup::__private::Unused));
                 }
             }
         }

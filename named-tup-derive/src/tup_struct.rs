@@ -254,11 +254,6 @@ impl TupInfo {
             false => quote! {#((&self.#fields) == (&other.#fields))&&*},
         };
 
-        let return_stmt_ne = match self.fields.is_empty() {
-            true => quote! {false},
-            false => quote! {#((&self.#fields) != (&other.#fields))||*},
-        };
-
         let expanded = quote! {
             impl<#(#generics: core::cmp::Eq),* #coma #(#phantom_generics),*> core::cmp::Eq for Tup<#full_generics> {}
 
@@ -266,10 +261,6 @@ impl TupInfo {
             {
                 fn eq(&self, other: &Tup<#generics_rhs_phantom>) -> bool {
                     #return_stmt_eq
-                }
-
-                fn ne(&self, other: &Tup<#generics_rhs_phantom>) -> bool {
-                    #return_stmt_ne
                 }
             }
         };
@@ -296,7 +287,7 @@ impl TupInfo {
         let all_phantom = quote! {#(#phantom_generics),* #coma #(#rhs_phantom_generics),*};
 
         let mut return_stmt_ord = quote! {core::cmp::Ordering::Equal};
-        for field in fields.into_iter().rev() {
+        for field in fields.iter().rev() {
             return_stmt_ord = quote! {
                 match core::cmp::Ord::cmp(&self.#field, &other.#field) {
                     core::cmp::Ordering::Equal => {
@@ -308,7 +299,7 @@ impl TupInfo {
         }
 
         let mut return_stmt_part = quote! {core::option::Option::Some(core::cmp::Ordering::Equal)};
-        for field in fields.into_iter().rev() {
+        for field in fields.iter().rev() {
             return_stmt_part = quote! {
                 match ::core::cmp::PartialOrd::partial_cmp(&self.#field, &other.#field) {
                     core::option::Option::Some(core::cmp::Ordering::Equal) => {
