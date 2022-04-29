@@ -9,18 +9,21 @@ mod tup_finder;
 pub fn main() {
     let mut all_identifiers = HashSet::new();
 
-    inwelling::inwelling(Opts {
-        watch_manifest: true,
-        watch_rs_files: true,
-        dump_rs_paths: true,
-    })
-    .sections
-    .into_iter()
-    .for_each(|section| {
-        section.rs_paths.unwrap().into_iter().for_each(|rs_path| {
-            tup_finder::get_all_identifiers(&rs_path, &mut all_identifiers);
+    // Docs.rs does not seem to like inwelling so we will just not use it.
+    if env::var("DOCS_RS").is_err() {
+        inwelling::inwelling(Opts {
+            watch_manifest: true,
+            watch_rs_files: true,
+            dump_rs_paths: true,
         })
-    });
+        .sections
+        .into_iter()
+        .for_each(|section| {
+            section.rs_paths.unwrap().into_iter().for_each(|rs_path| {
+                tup_finder::get_all_identifiers(&rs_path, &mut all_identifiers);
+            })
+        });
+    }
 
     let mut all_identifiers: Vec<String> = all_identifiers.into_iter().collect();
     all_identifiers.sort();

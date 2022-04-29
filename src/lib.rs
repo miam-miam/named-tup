@@ -18,7 +18,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! named-tup = "0.1.0"
+//! named-tup = "0.1.1"
 //!
 //! [package.metadata.inwelling]
 //! named-tup-derive = true
@@ -73,7 +73,7 @@
 //! }
 //! ```
 // Tup types in rustdoc of other crates get linked to here.
-#![doc(html_root_url = "https://docs.rs/named_tup/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/named_tup/0.1.1")]
 
 pub use convert::{TupFrom, TupInto};
 /// The whole point.

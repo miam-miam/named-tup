@@ -16,7 +16,7 @@ replace nonexistent arguments.
 
 ```toml
 [dependencies]
-named-tup = "0.1.0"
+named-tup = "0.1.1"
 
 [package.metadata.inwelling]
 named-tup-derive = true
