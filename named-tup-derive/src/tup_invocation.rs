@@ -8,7 +8,7 @@ use syn::{
 };
 
 use crate::tup_element::{TupDefault, TupElement, TupType};
-use crate::IDENTIFIERS;
+use crate::{IDENTIFIERS, NEW_IDENTIFIERS};
 
 pub enum TupInvocation {
     TupElement(Vec<TupElement>),
@@ -41,6 +41,18 @@ impl Parse for TupInvocation {
 }
 
 impl TupInvocation {
+    pub(crate) fn add_identifiers(&self) {
+        let mut set = NEW_IDENTIFIERS.lock().unwrap();
+        match self {
+            TupInvocation::TupElement(v) => {
+                set.add_identifiers(v.iter().map(|elem| elem.name.to_string()));
+            }
+            TupInvocation::TupType(v) => {
+                set.add_identifiers(v.iter().map(|typ| typ.name.to_string()));
+            }
+        }
+    }
+
     pub fn into_token_stream(self) -> TokenStream {
         match self {
             TupInvocation::TupElement(e) => Self::produce_expr(e),
@@ -78,10 +90,10 @@ impl TupInvocation {
             }
         }
 
-        assert!(
-            values.next().is_none(),
-            "tup! invocation contained identifiers that did not match to any known identifiers"
-        );
+        if values.next().is_some() {
+            return syn::Error::new(Span::call_site(), "Please recompile your project.")
+                .to_compile_error();
+        }
 
         let expanded = quote! {
             named_tup::__private::Tup::<#(#empty),* , #(#generics),*>::new( #(#expressions),* )
@@ -107,10 +119,10 @@ impl TupInvocation {
                             phantom_generics.push(parse_quote!(named_tup::__private::Used))
                         }
                         TupDefault::Unfinished(expr) => {
-                            return quote_spanned! {expr.span() => compile_error("Use the #[tup_default] attribute to automatically derive a TupDefault struct for each expression.");}
+                            return quote_spanned! {expr.span() => compile_error("Use the #[tup_default] attribute to automatically derive a TupDefault struct for each expression.");};
                         }
                         TupDefault::Finished(ident) => phantom_generics
-                            .push(syn::parse2::<syn::Type>(ident.to_token_stream()).unwrap()),
+                            .push(syn::parse2::<Type>(ident.to_token_stream()).unwrap()),
                     }
                 }
                 _ => {
@@ -120,10 +132,10 @@ impl TupInvocation {
             }
         }
 
-        assert!(
-            values.next().is_none(),
-            "tup! invocation contained identifiers that did not match to any known identifiers"
-        );
+        if values.next().is_some() {
+            return syn::Error::new(Span::call_site(), "Please recompile your project.")
+                .to_compile_error();
+        }
 
         let expanded = quote! {
             named_tup::__private::Tup::<#(#types),* , #(#phantom_generics),*>

@@ -12,12 +12,11 @@ description = "A helper macro crate for the named-tup crate"
 proc-macro = true
 
 [build-dependencies]
-pest = "2.1.3"
-pest_derive = "2.1.0"
-inwelling = "0.3.0"
+
 
 [dependencies]
 syn = { version = "1.0.91", features = ["visit-mut", "full"] }
 quote = "1.0.17"
 proc-macro2 = "1.0.37"
 uuid = { version = "0.8.2", features = ["v4"] }
+once_cell = "1.10.0"
