@@ -21,7 +21,7 @@ inwelling = "0.3.0"
 syn = { version = "1.0.92", features = ["visit-mut", "full"] }
 quote = "1.0.17"
 proc-macro2 = "1.0.37"
-uuid = { version = "0.8.2", features = ["v4"] }
+uuid = { version = "1.0.0", features = ["v4"] }
 
 [features]
 default = []
