@@ -11,22 +11,22 @@ named_tup_derive::sealed_trait_builder!();
 /// in one of the following categories:
 ///
 /// ```rust
-/// # use named_tup::{TupInto, tup, tup_default};
+/// # use named_tup::{TupInto, tup, Tup, tup_default};
 /// #[tup_default]
 /// pub fn main() {
-///     let unused_to_unused: tup!(bar: () = ()) = tup!().into_tup();
+///     let unused_to_unused: Tup!(bar: () = ()) = tup!().into_tup();
 ///     assert_eq!(unused_to_unused, tup!());
 ///
-///     let used_to_used: tup!(foo: i32) = tup!(foo: 3).into_tup();
+///     let used_to_used: Tup!(foo: i32) = tup!(foo: 3).into_tup();
 ///     assert_eq!(used_to_used, tup!(foo: 3));
 ///
-///     let used_to_default: tup!(foo: &'static str = "hi") = tup!(foo: "yum").into_tup();
+///     let used_to_default: Tup!(foo: &'static str = "hi") = tup!(foo: "yum").into_tup();
 ///     assert_eq!(used_to_default, tup!(foo: "yum"));
 ///
-///     let unused_to_default: tup!(foo: f64 = 1.3) = tup!().into_tup();
+///     let unused_to_default: Tup!(foo: f64 = 1.3) = tup!().into_tup();
 ///     assert_eq!(unused_to_default, tup!(foo: 1.3));
 ///
-///     let default_to_used: tup!(foo: f64) = unused_to_default.into_tup();
+///     let default_to_used: Tup!(foo: f64) = unused_to_default.into_tup();
 ///     assert_eq!(default_to_used, tup!(foo: 1.3));
 /// }
 /// ```
@@ -36,15 +36,15 @@ named_tup_derive::sealed_trait_builder!();
 /// Since each rule acts individually on the tup's arguments we can combine them together.
 ///
 /// ```rust
-/// # use named_tup::{TupInto, tup, tup_default};
+/// # use named_tup::{TupInto, Tup, tup, tup_default};
 /// let colour = tup!(red: 65, green: 105, blue: 225);
 /// let pixel = tup!(x: 5.0, y: 6.4, height: 4.7);
 ///
 /// paint(pixel.into_tup(), colour.into_tup());
 ///
 /// #[tup_default]
-/// fn paint(pixel: tup!(x: f64, y: f64, height: f64 = 1.0, width: f64 = 1.0),
-///          colour: tup!(red: i32, green: i32, blue: i32, opacity: f64 = 1.0))
+/// fn paint(pixel: Tup!(x: f64, y: f64, height: f64 = 1.0, width: f64 = 1.0),
+///          colour: Tup!(red: i32, green: i32, blue: i32, opacity: f64 = 1.0))
 /// {
 ///     let pixel_colour = pixel + colour;
 ///     // Paint    
@@ -64,11 +64,11 @@ pub trait TupInto<T>: private::Sealed {
 ///
 /// For more information please look at the [`TupInto`] trait.
 /// ```rust
-/// # use named_tup::{TupFrom, tup, tup_default};
+/// # use named_tup::{TupFrom, tup, Tup, tup_default};
 /// #[tup_default]
 /// pub fn main() {
 ///     let rick = tup!(funny: true);
-///     let rick = <tup!(funny: bool, lyrics: &'static str = "Never Gonna Give You Up...")>::from_tup(rick);
+///     let rick = <Tup!(funny: bool, lyrics: &'static str = "Never Gonna Give You Up...")>::from_tup(rick);
 ///     assert_eq!(rick, tup!(funny: true, lyrics: "Never Gonna Give You Up..."))
 /// }
 /// ```

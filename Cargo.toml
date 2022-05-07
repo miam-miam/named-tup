@@ -17,18 +17,9 @@ keywords = ["named-arguments", "default-arguments", "named-tuple", "tup"]
 categories = ["rust-patterns"]
 
 [dependencies]
-named-tup-derive = "0.1.1"
+named-tup-derive = { version = "0.1.1", path = "named-tup-derive" }
 
-[build-dependencies]
-pest = "2.1.3"
-pest_derive = "2.1.0"
-
-[features]
-default = []
-dev-test = [] # Should only be used for testing this crate as it adds extra tup identifiers that are used in the tests
-
-[package.metadata.inwelling-named-tup-derive]
-feature = "dev-test"
-
-[package.metadata.inwelling]
-named-tup-derive = true
+[dev-dependencies.named-tup-derive]
+version = "0.1.1"
+path = "named-tup-derive"
+features = ["add_dev_idents"]

@@ -28,12 +28,12 @@ named-tup-derive = true
 use named_tup::tup;
 let count = 5;
 
-// This will have the type of tup!(count: i32, ingredients: [&str; 3], eggs: bool)
+// This will have the type of Tup!(count: i32, ingredients: [&str; 3], eggs: bool)
 let cakes = tup!(count, ingredients: ["milk", "flower", "sugar"], eggs: true);
 
 // We can just add a price afterwards
 let mut cakes = cakes + tup!(price: 3);
-// And now it has the type of tup!(eggs: bool, ingredients: [&str; 3], count: i32, price: i32)
+// And now it has the type of Tup!(eggs: bool, ingredients: [&str; 3], count: i32, price: i32)
 
 // Once the price is in the tup we can just update it!
 cakes.price = 4;
@@ -52,17 +52,17 @@ the [`TupInto`] trait.
 [`TupInto`]: https://docs.rs/named-tup/latest/named-tup/trait.TupInto.html
 
 ```rust
-use named_tup::{tup, tup_default, TupInto};
+use named_tup::{tup, Tup, tup_default, TupInto};
 
 let options = tup!(read: false, write: true);
 
-// Converts to tup!(read: false, write: true, create: false, timeout: 5)
+// Converts to Tup!(read: false, write: true, create: false, timeout: 5)
 open_file("main.rs", options.into_tup());
 
 #[tup_default]
 fn open_file(
     path: &str,
-    options: tup!(
+    options: Tup!(
         read: bool = true,
         write: bool = false,
         create: bool = false,

@@ -8,7 +8,6 @@ pub(crate) struct TupInfo {
     pub generics: Vec<Ident>,
     pub phantom_generics: Vec<Ident>,
     pub full_generics: TokenStream,
-    pub coma: TokenStream,
 }
 
 impl TupInfo {
@@ -33,34 +32,27 @@ impl TupInfo {
             #(#full_generics),*
         };
 
-        let coma = match fields.is_empty() {
-            true => quote! {},
-            false => quote! {,},
-        };
-
         TupInfo {
             fields,
             generics,
             phantom_generics,
             full_generics,
-            coma,
         }
     }
 
     fn to_def(&self) -> TokenStream {
-        let (generics, fields, phantom_generics, full_generics, coma) = (
-            &self.generics,
-            &self.fields,
-            &self.phantom_generics,
-            &self.full_generics,
-            &self.coma,
-        );
+        let Self {
+            generics,
+            fields,
+            phantom_generics,
+            full_generics,
+        } = self;
 
         let expanded = quote! {
             #[derive(Copy, Clone)]
             #[must_use]
             pub struct Tup<#full_generics> {
-                #(pub #fields: #generics),* #coma
+                #(pub #fields: #generics,)*
                 _phantom: core::marker::PhantomData<(#(#phantom_generics),*)>
             }
         };
@@ -69,18 +61,18 @@ impl TupInfo {
     }
 
     fn to_new_impl(&self) -> TokenStream {
-        let (generics, fields, full_generics, coma) = (
-            &self.generics,
-            &self.fields,
-            &self.full_generics,
-            &self.coma,
-        );
+        let Self {
+            generics,
+            fields,
+            full_generics,
+            ..
+        } = self;
 
         let expanded = quote! {
             impl<#full_generics> Tup<#full_generics> {
                 pub fn new(#(#fields: #generics),*) -> Self {
                     Tup {
-                        #(#fields),* #coma
+                        #(#fields,)*
                         _phantom: core::marker::PhantomData
                     }
                 }
@@ -91,16 +83,16 @@ impl TupInfo {
     }
 
     fn to_default_impl(&self) -> TokenStream {
-        let (fields, coma) = (&self.fields, &self.coma);
+        let fields = &self.fields;
         let generics = (0..self.generics.len()).map(|_| syn::parse_str::<syn::Type>("()").unwrap());
         let phantom_generics = (0..self.phantom_generics.len())
             .map(|_| syn::parse_str::<syn::Type>("crate::tup_struct::Unused").unwrap());
 
         let expanded = quote! {
-            impl core::default::Default for Tup<#(#generics),* #coma #(#phantom_generics),*> {
+            impl core::default::Default for Tup<#(#generics,)* #(#phantom_generics),*> {
                 fn default() -> Self {
                     Tup {
-                        #(#fields: ()),* #coma
+                        #(#fields: (),)*
                         _phantom: core::marker::PhantomData
                     }
                 }
@@ -111,12 +103,12 @@ impl TupInfo {
     }
 
     fn to_debug_impl(&self) -> TokenStream {
-        let (generics, fields, full_generics, phantom_generics) = (
-            &self.generics,
-            &self.fields,
-            &self.full_generics,
-            &self.phantom_generics,
-        );
+        let Self {
+            generics,
+            fields,
+            phantom_generics,
+            full_generics,
+        } = self;
 
         let where_clause = match fields.is_empty() {
             true => quote! {},
@@ -142,13 +134,17 @@ impl TupInfo {
     }
 
     fn to_add_impl(&self) -> TokenStream {
-        let (generics, fields, phantom_generics, full_generics, coma) = (
-            &self.generics,
-            &self.fields,
-            &self.phantom_generics,
-            &self.full_generics,
-            &self.coma,
-        );
+        let Self {
+            generics,
+            fields,
+            phantom_generics,
+            full_generics,
+        } = self;
+
+        let coma = match fields.is_empty() {
+            true => quote! {},
+            false => quote! {,},
+        };
 
         let rhs_generics_stored: Vec<Ident> =
             generics.iter().map(|g| format_ident!("RHS{g}")).collect();
@@ -194,13 +190,17 @@ impl TupInfo {
     }
 
     fn to_into_impl(&self) -> TokenStream {
-        let (generics, fields, full_generics, phantom_generics, coma) = (
-            &self.generics,
-            &self.fields,
-            &self.full_generics,
-            &self.phantom_generics,
-            &self.coma,
-        );
+        let Self {
+            generics,
+            fields,
+            phantom_generics,
+            full_generics,
+        } = self;
+
+        let coma = match fields.is_empty() {
+            true => quote! {},
+            false => quote! {,},
+        };
 
         let new_phantom_generics_stored: Vec<Ident> = phantom_generics
             .iter()
@@ -216,12 +216,12 @@ impl TupInfo {
         };
 
         let expanded = quote! {
-            impl<#full_generics #coma #(#new_phantom_generics),*> crate::convert::TupFrom<Tup<#full_generics>> for Tup<#(<#generics as crate::convert::CanInto<#phantom_generics, #new_phantom_generics>>::Output),* #coma #(#new_phantom_generics),*>
+            impl<#full_generics #coma #(#new_phantom_generics),*> crate::convert::TupFrom<Tup<#full_generics>> for Tup<#(<#generics as crate::convert::CanInto<#phantom_generics, #new_phantom_generics>>::Output,)* #(#new_phantom_generics),*>
                 #where_clause
             {
                 fn from_tup(current: Tup<#full_generics>) -> Self {
                     Self {
-                        #(#fields: crate::convert::CanInto::<#phantom_generics, #new_phantom_generics>::into(current.#fields) ),* #coma
+                        #(#fields: crate::convert::CanInto::<#phantom_generics, #new_phantom_generics>::into(current.#fields) ,)*
                         _phantom: core::marker::PhantomData
                     }
                 }
@@ -232,13 +232,12 @@ impl TupInfo {
     }
 
     fn to_eq_impl(&self) -> TokenStream {
-        let (generics, fields, full_generics, phantom_generics, coma) = (
-            &self.generics,
-            &self.fields,
-            &self.full_generics,
-            &self.phantom_generics,
-            &self.coma,
-        );
+        let Self {
+            generics,
+            fields,
+            phantom_generics,
+            full_generics,
+        } = self;
 
         let rhs_phantom_generics_stored: Vec<Ident> = phantom_generics
             .iter()
@@ -246,8 +245,8 @@ impl TupInfo {
             .collect();
         let rhs_phantom_generics = &rhs_phantom_generics_stored;
 
-        let generics_rhs_phantom = quote! {#(#generics),* #coma #(#rhs_phantom_generics),*};
-        let all_phantom = quote! {#(#phantom_generics),* #coma #(#rhs_phantom_generics),*};
+        let generics_rhs_phantom = quote! {#(#generics,)* #(#rhs_phantom_generics),*};
+        let all_phantom = quote! {#(#phantom_generics,)* #(#rhs_phantom_generics),*};
 
         let return_stmt_eq = match self.fields.is_empty() {
             true => quote! {true},
@@ -255,9 +254,9 @@ impl TupInfo {
         };
 
         let expanded = quote! {
-            impl<#(#generics: core::cmp::Eq),* #coma #(#phantom_generics),*> core::cmp::Eq for Tup<#full_generics> {}
+            impl<#(#generics: core::cmp::Eq,)* #(#phantom_generics),*> core::cmp::Eq for Tup<#full_generics> {}
 
-            impl<#(#generics: core::cmp::PartialEq),* #coma #all_phantom> core::cmp::PartialEq<Tup<#generics_rhs_phantom>> for Tup<#full_generics>
+            impl<#(#generics: core::cmp::PartialEq,)* #all_phantom> core::cmp::PartialEq<Tup<#generics_rhs_phantom>> for Tup<#full_generics>
             {
                 fn eq(&self, other: &Tup<#generics_rhs_phantom>) -> bool {
                     #return_stmt_eq
@@ -269,13 +268,12 @@ impl TupInfo {
 
     // Cannot implement true ord as that requires the same type.
     fn to_ord_impl(&self) -> TokenStream {
-        let (generics, fields, full_generics, phantom_generics, coma) = (
-            &self.generics,
-            &self.fields,
-            &self.full_generics,
-            &self.phantom_generics,
-            &self.coma,
-        );
+        let Self {
+            generics,
+            fields,
+            phantom_generics,
+            full_generics,
+        } = self;
 
         let rhs_phantom_generics_stored: Vec<Ident> = phantom_generics
             .iter()
@@ -283,8 +281,8 @@ impl TupInfo {
             .collect();
         let rhs_phantom_generics = &rhs_phantom_generics_stored;
 
-        let generics_rhs_phantom = quote! {#(#generics),* #coma #(#rhs_phantom_generics),*};
-        let all_phantom = quote! {#(#phantom_generics),* #coma #(#rhs_phantom_generics),*};
+        let generics_rhs_phantom = quote! {#(#generics,)* #(#rhs_phantom_generics),*};
+        let all_phantom = quote! {#(#phantom_generics,)* #(#rhs_phantom_generics),*};
 
         let mut return_stmt_ord = quote! {core::cmp::Ordering::Equal};
         for field in fields.iter().rev() {
@@ -311,13 +309,13 @@ impl TupInfo {
         }
 
         let expanded = quote! {
-            impl<#(#generics: core::cmp::Ord),* #coma #(#phantom_generics),*> core::cmp::Ord for Tup<#full_generics> {
+            impl<#(#generics: core::cmp::Ord,)* #(#phantom_generics),*> core::cmp::Ord for Tup<#full_generics> {
                 fn cmp(&self, other: &Tup<#full_generics>) -> core::cmp::Ordering {
                     #return_stmt_ord
                 }
             }
 
-            impl<#(#generics: core::cmp::PartialOrd),* #coma #all_phantom> core::cmp::PartialOrd<Tup<#generics_rhs_phantom>> for Tup<#full_generics> {
+            impl<#(#generics: core::cmp::PartialOrd,)* #all_phantom> core::cmp::PartialOrd<Tup<#generics_rhs_phantom>> for Tup<#full_generics> {
                 fn partial_cmp(&self, other: &Tup<#generics_rhs_phantom>) -> core::option::Option<core::cmp::Ordering> {
                     #return_stmt_part
                 }
@@ -327,16 +325,15 @@ impl TupInfo {
     }
 
     fn to_hash_impl(&self) -> TokenStream {
-        let (generics, fields, full_generics, phantom_generics, coma) = (
-            &self.generics,
-            &self.fields,
-            &self.full_generics,
-            &self.phantom_generics,
-            &self.coma,
-        );
+        let Self {
+            generics,
+            fields,
+            phantom_generics,
+            full_generics,
+        } = self;
 
         let expanded = quote! {
-            impl<#(#generics: core::hash::Hash),* #coma #(#phantom_generics),*> core::hash::Hash for Tup<#full_generics>
+            impl<#(#generics: core::hash::Hash,)* #(#phantom_generics),*> core::hash::Hash for Tup<#full_generics>
             {
                 fn hash<__H: core::hash::Hasher>(&self, state: &mut __H) {
                     #(core::hash::Hash::hash(&self.#fields, state));*

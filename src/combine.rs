@@ -1,6 +1,6 @@
 use crate::tup_struct::{TupDefault, Unused, Used};
 
-/// Defines how two tup's arguments can be added together
+/// Defines how two Tup's arguments can be added together
 pub trait CanCombine<P1, P2> {
     type Output;
     type PhantomOutput;

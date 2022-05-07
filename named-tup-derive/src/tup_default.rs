@@ -38,7 +38,7 @@ impl TupDefaultReplace {
 
 impl VisitMut for TupDefaultReplace {
     fn visit_type_macro_mut(&mut self, i: &mut TypeMacro) {
-        if i.mac.path.is_ident(&Ident::new("tup", Span::call_site())) {
+        if i.mac.path.is_ident(&Ident::new("Tup", Span::call_site())) {
             let parser = Punctuated::<TupType, Token![,]>::parse_terminated;
             if let Ok(mut v) = parser.parse2(i.mac.tokens.clone()) {
                 let new_expr = v.iter_mut().map(|elem| {

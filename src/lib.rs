@@ -31,12 +31,12 @@
 //! use named_tup::tup;
 //! let count = 5;
 //!
-//! // This will have the type of tup!(count: i32, ingredients: [&str; 3], eggs: bool)
+//! // This will have the type of Tup!(count: i32, ingredients: [&str; 3], eggs: bool)
 //! let cakes = tup!(count, ingredients: ["milk", "flower", "sugar"], eggs: true);
 //!
 //! // We can just add a price afterwards
 //! let mut cakes = cakes + tup!(price: 3);
-//! // And now it has the type of tup!(eggs: bool, ingredients: [&str; 3], count: i32, price: i32)
+//! // And now it has the type of Tup!(eggs: bool, ingredients: [&str; 3], count: i32, price: i32)
 //!
 //! // Once the price is in the tup we can just update it!
 //! cakes.price = 4;
@@ -52,17 +52,17 @@
 //! [`.into_tup()`](TupInto) which can be accessed through the [`TupInto`] trait.
 //!
 //! ```
-//! use named_tup::{tup, tup_default, TupInto};
+//! use named_tup::{tup,Tup, tup_default, TupInto};
 //!
 //! let options = tup!(read: false, write: true);
 //!
-//! // Converts to tup!(read: false, write: true, create: false, timeout: 5)
+//! // Converts to Tup!(read: false, write: true, create: false, timeout: 5)
 //! open_file("main.rs", options.into_tup());
 //!
 //! #[tup_default]
 //! fn open_file(
 //!     path: &str,
-//!     options: tup!(
+//!     options: Tup!(
 //!         read: bool = true,
 //!         write: bool = false,
 //!         create: bool = false,
@@ -120,14 +120,14 @@ pub use convert::{TupFrom, TupInto};
 /// In this case the expression is replaced by a type.
 ///
 /// ```rust
-/// # use named_tup::tup;
-/// let recipe: tup!(eggs: u8, milk: &str, flour: f32) = tup!(milk: "500ml", eggs: 4, flour: 203.6);
+/// # use named_tup::{tup, Tup};
+/// let recipe: Tup!(eggs: u8, milk: &str, flour: f32) = tup!(milk: "500ml", eggs: 4, flour: 203.6);
 /// let person = tup!(name: "Joe", blue_eyes: true);
 /// face_recognizer(vec![person]);
 ///
 /// fn face_recognizer(
-///     people: Vec<tup!(name: &'static str, blue_eyes: bool)>,
-/// ) -> tup!(confidence: f64, name: &'static str) {
+///     people: Vec<Tup!(name: &'static str, blue_eyes: bool)>,
+/// ) -> Tup!(confidence: f64, name: &'static str) {
 ///     tup!(confidence: 0.3, name: "Joe")
 /// }
 /// ```
@@ -136,11 +136,11 @@ pub use convert::{TupFrom, TupInto};
 /// attribute and the [`TupInto`] trait to change the type.
 ///
 /// ```rust
-/// # use named_tup::{tup, tup_default, TupInto};
+/// # use named_tup::{tup, Tup, tup_default, TupInto};
 /// #[tup_default]
 /// pub fn main() {
 ///     # let input = false;
-///     let result: tup!(foo: i32 = 3, bar: Option<i32> = None) = match input {
+///     let result: Tup!(foo: i32 = 3, bar: Option<i32> = None) = match input {
 ///         true => tup!(foo: 4).into_tup(),
 ///         false => tup!(bar: Some(4)).into_tup(),
 ///     };
@@ -149,7 +149,7 @@ pub use convert::{TupFrom, TupInto};
 /// }
 ///
 /// #[tup_default]
-/// fn read(books: tup!(names: &'static [&'static str] = &[], ETA: i32 = 0)) {
+/// fn read(books: Tup!(names: &'static [&'static str] = &[], ETA: i32 = 0)) {
 ///     // Read
 /// }
 /// ```
@@ -202,22 +202,25 @@ pub use named_tup_derive::tup;
 /// the type [`TupInto`] must be used to convert it.
 ///
 /// ```rust
-/// # use named_tup::{TupInto, tup, tup_default};
+/// # use named_tup::{TupInto, tup, tup_default, Tup};
 /// #[tup_default]
 /// pub fn main() {
-///     let default: tup!(foo: i32 = 2) = tup!().into_tup();
+///     let default: Tup!(foo: i32 = 2) = tup!().into_tup();
 ///     let result = default_to_non(tup!().into_tup());
 ///
 ///     assert_eq!(result, tup!(foo: 2));
 ///     assert_eq!(result.foo, default.foo);
 /// }
 /// #[tup_default]
-/// fn default_to_non(n_tup: tup!(foo: i32 = 2)) -> tup!(foo: i32) {
+/// fn default_to_non(n_tup: Tup!(foo: i32 = 2)) -> Tup!(foo: i32) {
 ///     n_tup.into_tup()
 /// }
 ///
 /// ```
 pub use named_tup_derive::tup_default;
+///
+///
+pub use named_tup_derive::Tup;
 
 mod combine;
 mod convert;

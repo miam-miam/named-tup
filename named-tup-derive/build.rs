@@ -1,3 +1,5 @@
+extern crate core;
+
 use std::collections::HashSet;
 use std::path::Path;
 use std::{env, fs};
@@ -20,9 +22,19 @@ pub fn main() {
         .into_iter()
         .for_each(|section| {
             section.rs_paths.unwrap().into_iter().for_each(|rs_path| {
+                dbg!(&rs_path);
                 tup_finder::get_all_identifiers(&rs_path, &mut all_identifiers);
             })
         });
+    }
+
+    // Add doc test identifiers
+    if cfg!(feature = "add_dev_idents") {
+        all_identifiers.extend(
+            include! {"dev_idents.in"}
+                .into_iter()
+                .map(|s| s.to_string()),
+        )
     }
 
     let mut all_identifiers: Vec<String> = all_identifiers.into_iter().collect();

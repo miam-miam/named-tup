@@ -11,7 +11,7 @@ use syn::visit_mut::VisitMut;
 use syn::{parse_macro_input, Item};
 
 use crate::tup_default::TupDefaultReplace;
-use crate::tup_invocation::TupInvocation;
+use crate::tup_invocation::{TupElementInvocation, TupTypeInvocation};
 
 mod sealed;
 mod tup_default;
@@ -36,7 +36,14 @@ pub fn tup(input: TokenStream) -> TokenStream {
     if input.is_empty() {
         return quote! {named_tup::__private::Tup::default()}.into();
     }
-    let input = parse_macro_input!(input as TupInvocation);
+    let input = parse_macro_input!(input as TupElementInvocation);
+    TokenStream::from(input.into_token_stream())
+}
+
+#[proc_macro]
+#[allow(non_snake_case)]
+pub fn Tup(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as TupTypeInvocation);
     TokenStream::from(input.into_token_stream())
 }
 
