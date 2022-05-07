@@ -48,7 +48,7 @@
 //! <br>
 //!
 //! To use defaults just annotate the item where you set a field with [`#[tup_default]`](tup_default).
-//! Additionally since the defaulted [`tup!`] is a type you need to convert into it by calling
+//! Additionally since the defaulted [`Tup!`] is a type you need to convert into it by calling
 //! [`.into_tup()`](TupInto) which can be accessed through the [`TupInto`] trait.
 //!
 //! ```
@@ -82,8 +82,8 @@ pub use convert::{TupFrom, TupInto};
 /// can contain a set of named arguments. Each named tuple can be added together or even
 /// default to a value if it does not already exist.
 ///
-/// There are two types of call notations depending on whether the [`tup!`] macro is
-/// used to define a type or an expression.
+/// There are two different macros the [`tup!`] macro for defining an expression and the [`Tup!`]
+/// macro for defining a type.
 ///
 /// <br>
 ///
@@ -114,10 +114,9 @@ pub use convert::{TupFrom, TupInto};
 ///
 /// <br>
 ///
-/// # tup as a type
+/// # Tup as a type
 ///
 /// However in certain cases defining the type exactly is necessary.
-/// In this case the expression is replaced by a type.
 ///
 /// ```rust
 /// # use named_tup::{tup, Tup};
@@ -158,7 +157,7 @@ pub use convert::{TupFrom, TupInto};
 ///
 /// # Tup type
 ///
-/// Each [`tup!`] call produces a Tup type, the type itself eagerly implements
+/// Each [`Tup!`] call produces a Tup type, the type itself eagerly implements
 /// [`Copy`], [`Clone`], [`Eq`], [`PartialEq`], [`Ord`], [`PartialOrd`], [`Hash`]
 /// assuming all the types it contains implement them. (Ord/PartialOrd is in lexicographic
 /// ordering and Ord/Eq cannot be implemented on types that use different defaults
@@ -195,11 +194,11 @@ pub use convert::{TupFrom, TupInto};
 pub use named_tup_derive::tup;
 /// An attribute macro that allows you to derive defaults.
 ///
-/// Defaults are added to any [`tup!`] macro in the type position by using the equals sign.
+/// Defaults are added to any [`Tup!`] macro by using the equals sign.
 /// [`#[tup_default]`](tup_default) will then change the invocation so that it is a part of the
 /// type information itself. As such [`#[tup_default]`](tup_default) needs to be used on any
-/// item that uses defaults in a [`tup!`] invocation. Since a defaulted Tup is part of
-/// the type [`TupInto`] must be used to convert it.
+/// item that uses defaults in a [`Tup!`] invocation. Since a defaulted Tup is a type
+/// [`TupInto`] must be used to convert it.
 ///
 /// ```rust
 /// # use named_tup::{TupInto, tup, tup_default, Tup};
@@ -215,11 +214,52 @@ pub use named_tup_derive::tup;
 /// fn default_to_non(n_tup: Tup!(foo: i32 = 2)) -> Tup!(foo: i32) {
 ///     n_tup.into_tup()
 /// }
-///
 /// ```
 pub use named_tup_derive::tup_default;
+/// Produces a type annotation for the tup struct. If an expression is needed
+/// instead please use the [`tup!`] macro.
 ///
+/// It is used in a very similar way to the [`tup!`] macro but with any expression
+/// replaced with a type.
+/// ```rust
+/// # use named_tup::{tup, Tup};
+/// let empty: Tup!() = tup!();
+/// // Since it's just a normal type it can coerce certain literals
+/// let num: Tup!(foo: u8) = tup!(foo: 5);
 ///
+/// assert_eq!(test(tup!(foo: 5, bar: 6)), tup!(foo: 5));
+///
+/// // It can also just be used as an argument in functions
+/// fn test(arg: Tup!(foo: i32, bar: i64)) -> Tup!(foo: i32) {
+///     tup!(foo: arg.foo)
+/// }
+/// ```
+///
+/// However it's main use case is to provide default values using the
+/// [`#[tup_default]`](tup_default) attribute macro and the
+/// [`TupInto`] trait to convert between different types.
+///
+/// ```rust
+/// # use named_tup::{TupInto, tup, tup_default, Tup};
+/// #[tup_default]
+/// pub fn main() {
+///     let default: Tup!(foo: i32 = 2) = tup!().into_tup();
+///     let result = default_to_non(tup!().into_tup());
+///
+///     assert_eq!(result, tup!(foo: 2));
+///     assert_eq!(result.foo, default.foo);
+///
+///     // Will print tup { foo: 2 }
+///     println!("{result:?}");
+///
+///     // Will print tup { foo: 2 (=2) } where (=2) is the default value
+///     println!("{default:?}");
+/// }
+/// #[tup_default]
+/// fn default_to_non(n_tup: Tup!(foo: i32 = 2)) -> Tup!(foo: i32) {
+///     n_tup.into_tup()
+/// }
+/// ```
 pub use named_tup_derive::Tup;
 
 mod combine;
