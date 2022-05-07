@@ -11,12 +11,6 @@ updates:
     schedule:
       interval: "daily"
 
-  - package-ecosystem: "cargo"
-    # Files stored in `app` directory
-    directory: "/named-tup-derive"
-    schedule:
-      interval: "daily"
-
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
     # default location of `.github/workflows`
