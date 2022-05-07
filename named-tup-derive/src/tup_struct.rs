@@ -51,6 +51,7 @@ impl TupInfo {
         let expanded = quote! {
             #[derive(Copy, Clone)]
             #[must_use]
+            #[allow(clippy::type_complexity)]
             pub struct Tup<#full_generics> {
                 #(pub #fields: #generics,)*
                 _phantom: core::marker::PhantomData<(#(#phantom_generics),*)>
@@ -70,6 +71,7 @@ impl TupInfo {
 
         let expanded = quote! {
             impl<#full_generics> Tup<#full_generics> {
+                #[allow(clippy::too_many_arguments)]
                 pub fn new(#(#fields: #generics),*) -> Self {
                     Tup {
                         #(#fields,)*

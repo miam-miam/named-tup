@@ -22,7 +22,6 @@ pub fn main() {
         .into_iter()
         .for_each(|section| {
             section.rs_paths.unwrap().into_iter().for_each(|rs_path| {
-                dbg!(&rs_path);
                 tup_finder::get_all_identifiers(&rs_path, &mut all_identifiers);
             })
         });

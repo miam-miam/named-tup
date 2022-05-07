@@ -4,7 +4,7 @@ use std::path::Path;
 
 use syn::parse::{Parse, ParseStream};
 use syn::visit::Visit;
-use syn::{parse_macro_input, visit, Macro, PathArguments, Result, Token};
+use syn::{visit, Macro, PathArguments, Result, Token};
 
 mod tup_element {
     include! {"src/tup_element.rs"}
@@ -43,11 +43,8 @@ impl<'a> Visit<'_> for TupFinder<'a> {
         if mac.path.leading_colon.is_none() && mac.path.segments.len() == 1 {
             let seg = mac.path.segments.first().unwrap();
             if let PathArguments::None = seg.arguments {
-                dbg!(&seg.ident);
                 if seg.ident == "tup" {
-                    let mac =
-                        parse_macro_input::parse::<TupElementInvocation>(mac.tokens.clone().into());
-
+                    let mac = syn::parse2::<TupElementInvocation>(mac.tokens.clone());
                     if let Ok(mac) = mac {
                         for tuple in mac.0 {
                             let ident = tuple.name.to_string();
@@ -55,8 +52,7 @@ impl<'a> Visit<'_> for TupFinder<'a> {
                         }
                     }
                 } else if seg.ident == "Tup" {
-                    let mac =
-                        parse_macro_input::parse::<TupTypeInvocation>(mac.tokens.clone().into());
+                    let mac = syn::parse2::<TupTypeInvocation>(mac.tokens.clone());
 
                     if let Ok(mac) = mac {
                         for tuple in mac.0 {
@@ -77,7 +73,6 @@ pub fn get_all_identifiers(file_path: &Path, all_identifiers: &mut HashSet<Strin
 
     let syntax = syn::parse_file(&code);
     if let Ok(syntax) = syntax {
-        dbg!("syntax");
         TupFinder(all_identifiers).visit_file(&syntax);
     }
 }
