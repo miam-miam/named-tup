@@ -33,8 +33,9 @@ struct DebugHijacker<'a>(&'a dyn Debug, &'a dyn Debug);
 impl<'a> Debug for DebugHijacker<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         self.0.fmt(f)?;
-        f.write_str(" = ")?;
-        self.1.fmt(f)
+        f.write_str(" (=")?;
+        self.1.fmt(f)?;
+        f.write_str(")")
     }
 }
 
