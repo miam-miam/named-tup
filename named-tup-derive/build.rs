@@ -1,8 +1,8 @@
 extern crate core;
 
+use std::{env, fs};
 use std::collections::HashSet;
 use std::path::Path;
-use std::{env, fs};
 
 use inwelling::Opts;
 
@@ -13,17 +13,31 @@ pub fn main() {
 
     // Docs.rs does not seem to like inwelling so we will just not use it.
     if env::var("DOCS_RS").is_err() {
-        inwelling::inwelling(Opts {
+        let downstream = inwelling::collect_downstream(Opts {
             watch_manifest: true,
-            watch_rs_files: true,
+            watch_rs_files: false,
             dump_rs_paths: true,
-        })
-        .sections
-        .into_iter()
-        .for_each(|section| {
-            section.rs_paths.unwrap().into_iter().for_each(|rs_path| {
-                tup_finder::get_all_identifiers(&rs_path, &mut all_identifiers);
-            })
+        });
+
+        downstream.packages.into_iter().for_each(|package| {
+            if let Some(idents) = package.metadata.as_table().and_then(|t| t.get("arguments")) {
+                if let Some(a) = idents.as_array() {
+                    for ident in a {
+                        if let Some(ident) = ident.as_str() {
+                            all_identifiers.insert(ident.into());
+                        } else {
+                            panic!("Expected to find an array of idents in the Cargo.toml file.")
+                        }
+                    }
+                } else {
+                    panic!("Expected to find an array of idents in the Cargo.toml file.")
+                }
+            } else {
+                package.rs_paths.unwrap().into_iter().for_each(|rs_path| {
+                    println!("cargo:rerun-if-changed={}", rs_path.to_str().unwrap());
+                    tup_finder::get_all_identifiers(&rs_path, &mut all_identifiers);
+                })
+            }
         });
     }
 
@@ -45,7 +59,7 @@ pub fn main() {
     let new_file_contents = format!("&{all_identifiers:?}");
     if should_rewrite_file(&gen_path, &new_file_contents) {
         fs::write(&gen_path, new_file_contents)
-            .expect(&*format!("Could not write to file at: {gen_path:?}"));
+            .unwrap_or_else(|_| panic!("Could not write to file at: {gen_path:?}"));
     }
 }
 
@@ -53,7 +67,7 @@ fn should_rewrite_file(gen_path: &Path, new_file_contents: &str) -> bool {
     if !gen_path.is_file() {
         return true;
     }
-    let current_file_contents =
-        fs::read_to_string(&gen_path).expect(&*format!("Could not read to file at: {gen_path:?}"));
+    let current_file_contents = fs::read_to_string(gen_path)
+        .unwrap_or_else(|_| panic!("Could not read to file at: {gen_path:?}"));
     current_file_contents != new_file_contents
 }

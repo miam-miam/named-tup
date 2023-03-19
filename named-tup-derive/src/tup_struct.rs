@@ -19,12 +19,12 @@ impl TupInfo {
         let generics: Vec<Ident> = IDENTIFIERS
             .iter()
             .enumerate()
-            .map(|(count, field)| Ident::new(&*format!("T{count}"), field.span()))
+            .map(|(count, field)| Ident::new(&format!("T{count}"), field.span()))
             .collect();
         let phantom_generics: Vec<Ident> = IDENTIFIERS
             .iter()
             .enumerate()
-            .map(|(count, field)| Ident::new(&*format!("P{count}"), field.span()))
+            .map(|(count, field)| Ident::new(&format!("P{count}"), field.span()))
             .collect();
         let full_generics = generics.iter().chain(phantom_generics.iter());
 

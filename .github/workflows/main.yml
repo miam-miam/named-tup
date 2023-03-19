@@ -40,6 +40,9 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+      - name: Run examples
+        run: cargo run --package manual && cargo run --package auto
+
 
   lints:
     name: Lints

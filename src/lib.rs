@@ -20,8 +20,26 @@
 //! [dependencies]
 //! named-tup = "0.2.0"
 //!
-//! [package.metadata.inwelling]
-//! named-tup-derive = true
+//! [build-dependencies]
+//! inwelling = "0.4.0"
+//!
+//! [package.metadata.inwelling.named-tup-derive]
+//! ```
+//!
+//! And put the following in your `build.rs` file.
+//!
+//! ```ignore
+//! fn main() {
+//!     inwelling::register();
+//! }
+//! ```
+//!
+//! If you would prefer for this crate to not scan your project files to determine what named arguments are being used add a list
+//! of the named tup arguments you used in your Cargo.toml like so.
+//!
+//! ```toml
+//! [package.metadata.inwelling.named-tup-derive]
+//! arguments = ["count", "ingredients", "eggs", "price"]
 //! ```
 //!
 //! <br>
@@ -192,30 +210,6 @@ pub use convert::{TupFrom, TupInto};
 /// assert_eq!(combined_farm, tup!(roosters: 4, hens: 56, dragons: 7, dogs: 3));
 /// ```
 pub use named_tup_derive::tup;
-/// An attribute macro that allows you to derive defaults.
-///
-/// Defaults are added to any [`Tup!`] macro by using the equals sign.
-/// [`#[tup_default]`](tup_default) will then change the invocation so that it is a part of the
-/// type information itself. As such [`#[tup_default]`](tup_default) needs to be used on any
-/// item that uses defaults in a [`Tup!`] invocation. Since a defaulted Tup is a type
-/// [`TupInto`] must be used to convert it.
-///
-/// ```rust
-/// # use named_tup::{TupInto, tup, tup_default, Tup};
-/// #[tup_default]
-/// pub fn main() {
-///     let default: Tup!(foo: i32 = 2) = tup!().into_tup();
-///     let result = default_to_non(tup!().into_tup());
-///
-///     assert_eq!(result, tup!(foo: 2));
-///     assert_eq!(result.foo, default.foo);
-/// }
-/// #[tup_default]
-/// fn default_to_non(n_tup: Tup!(foo: i32 = 2)) -> Tup!(foo: i32) {
-///     n_tup.into_tup()
-/// }
-/// ```
-pub use named_tup_derive::tup_default;
 /// Produces a type annotation for the tup struct. If an expression is needed
 /// instead please use the [`tup!`] macro.
 ///
@@ -261,6 +255,30 @@ pub use named_tup_derive::tup_default;
 /// }
 /// ```
 pub use named_tup_derive::Tup;
+/// An attribute macro that allows you to derive defaults.
+///
+/// Defaults are added to any [`Tup!`] macro by using the equals sign.
+/// [`#[tup_default]`](tup_default) will then change the invocation so that it is a part of the
+/// type information itself. As such [`#[tup_default]`](tup_default) needs to be used on any
+/// item that uses defaults in a [`Tup!`] invocation. Since a defaulted Tup is a type
+/// [`TupInto`] must be used to convert it.
+///
+/// ```rust
+/// # use named_tup::{TupInto, tup, tup_default, Tup};
+/// #[tup_default]
+/// pub fn main() {
+///     let default: Tup!(foo: i32 = 2) = tup!().into_tup();
+///     let result = default_to_non(tup!().into_tup());
+///
+///     assert_eq!(result, tup!(foo: 2));
+///     assert_eq!(result.foo, default.foo);
+/// }
+/// #[tup_default]
+/// fn default_to_non(n_tup: Tup!(foo: i32 = 2)) -> Tup!(foo: i32) {
+///     n_tup.into_tup()
+/// }
+/// ```
+pub use named_tup_derive::tup_default;
 
 mod combine;
 mod convert;

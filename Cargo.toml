@@ -2,6 +2,8 @@
 members = [
     ".",
     "named-tup-derive",
+    "examples/auto",
+    "examples/manual"
 ]
 
 [package]

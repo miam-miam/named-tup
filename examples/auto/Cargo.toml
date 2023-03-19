@@ -1,0 +1,15 @@
+[package]
+name = "auto"
+version = "0.1.0"
+authors = ["miam-miam100 <MiamMiam@mailbox.org>"]
+edition = "2021"
+publish = false
+
+[dependencies]
+named-tup = { path = "../.." }
+
+[build-dependencies]
+inwelling = "0.4.0"
+
+[package.metadata.inwelling.named-tup-derive]
+
