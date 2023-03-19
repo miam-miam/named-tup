@@ -16,7 +16,7 @@ pub struct TupTypeInvocation(Vec<TupType>);
 impl Parse for TupElementInvocation {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut values: Vec<TupElement> = input
-            .parse_terminated::<_, Token![,]>(TupElement::parse)?
+            .parse_terminated(TupElement::parse, Token![,])?
             .into_iter()
             .collect();
         values.sort();
@@ -27,7 +27,7 @@ impl Parse for TupElementInvocation {
 impl Parse for TupTypeInvocation {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut values: Vec<TupType> = input
-            .parse_terminated::<_, Token![,]>(TupType::parse)?
+            .parse_terminated(TupType::parse, Token![,])?
             .into_iter()
             .collect();
         values.sort();
