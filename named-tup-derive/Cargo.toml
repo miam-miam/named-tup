@@ -15,7 +15,7 @@ proc-macro = true
 syn = { version = "1.0.92", features = ["visit", "full"] }
 quote = "1.0.17"
 proc-macro2 = "1.0.37"
-inwelling = "0.3.0"
+inwelling = "0.4.0"
 
 [dependencies]
 syn = { version = "1.0.92", features = ["visit-mut", "full"] }

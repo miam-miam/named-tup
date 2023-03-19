@@ -68,8 +68,8 @@ impl<'a> Visit<'_> for TupFinder<'a> {
 }
 
 pub fn get_all_identifiers(file_path: &Path, all_identifiers: &mut HashSet<String>) {
-    let code =
-        fs::read_to_string(file_path).expect(&*format!("Could not read to file at: {file_path:?}"));
+    let code = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Could not read to file at: {file_path:?}"));
 
     let syntax = syn::parse_file(&code);
     if let Ok(syntax) = syntax {

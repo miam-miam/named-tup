@@ -20,8 +20,26 @@
 //! [dependencies]
 //! named-tup = "0.2.0"
 //!
-//! [package.metadata.inwelling]
-//! named-tup-derive = true
+//! [build-dependencies]
+//! inwelling = "0.4.0"
+//!
+//! [package.metadata.inwelling.named-tup-derive]
+//! ```
+//!
+//! And put the following in your `build.rs` file.
+//!
+//! ```ignore
+//! fn main() {
+//!     inwelling::register();
+//! }
+//! ```
+//!
+//! If you would prefer for this crate to not scan your project files to determine what named arguments are being used add a list
+//! of the named tup arguments you used in your Cargo.toml like so.
+//!
+//! ```toml
+//! [package.metadata.inwelling.named-tup-derive]
+//! arguments = ["count", "ingredients", "eggs", "price"]
 //! ```
 //!
 //! <br>
