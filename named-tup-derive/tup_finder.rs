@@ -2,9 +2,9 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 
-use syn::{Macro, PathArguments, Result, Token, visit};
 use syn::parse::{Parse, ParseStream};
 use syn::visit::Visit;
+use syn::{visit, Macro, PathArguments, Result, Token};
 
 mod tup_element {
     include! {"src/tup_element.rs"}

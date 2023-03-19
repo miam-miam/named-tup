@@ -1,8 +1,8 @@
 extern crate core;
 
-use std::{env, fs};
 use std::collections::HashSet;
 use std::path::Path;
+use std::{env, fs};
 
 use inwelling::Opts;
 
