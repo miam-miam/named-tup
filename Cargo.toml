@@ -8,7 +8,7 @@ members = [
 
 [package]
 name = "named-tup"
-version = "0.2.0"  # don't forget to update html_root_url and version in readme for breaking changes
+version = "0.3.0"  # don't forget to update html_root_url and version in readme for breaking changes
 edition = "2021"
 authors = ["miam-miam100 <MiamMiam@mailbox.org>"]
 license = "MIT OR Apache-2.0"
@@ -19,9 +19,9 @@ keywords = ["named-arguments", "default-arguments", "named-tuple", "tup"]
 categories = ["rust-patterns"]
 
 [dependencies]
-named-tup-derive = { version = "0.2.0", path = "named-tup-derive" }
+named-tup-derive = { version = "0.3.0", path = "named-tup-derive" }
 
 [dev-dependencies.named-tup-derive]
-version = "0.2.0"
+version = "0.3.0"
 path = "named-tup-derive"
 features = ["add_dev_idents"]
