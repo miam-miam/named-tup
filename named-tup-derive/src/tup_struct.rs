@@ -317,6 +317,7 @@ impl TupInfo {
                 }
             }
 
+            #[allow(clippy::non_canonical_partial_ord_impl)]
             impl<#(#generics: core::cmp::PartialOrd,)* #all_phantom> core::cmp::PartialOrd<Tup<#generics_rhs_phantom>> for Tup<#full_generics> {
                 fn partial_cmp(&self, other: &Tup<#generics_rhs_phantom>) -> core::option::Option<core::cmp::Ordering> {
                     #return_stmt_part
