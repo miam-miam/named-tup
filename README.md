@@ -16,7 +16,7 @@ replace nonexistent arguments.
 
 ```toml
 [dependencies]
-named-tup = "0.3.0"
+named-tup = "0.3.1"
 
 [build-dependencies]
 inwelling = "0.4.0"

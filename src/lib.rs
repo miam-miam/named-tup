@@ -18,7 +18,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! named-tup = "0.3.0"
+//! named-tup = "0.3.1"
 //!
 //! [build-dependencies]
 //! inwelling = "0.4.0"
@@ -91,7 +91,7 @@
 //! }
 //! ```
 // Tup types in rustdoc of other crates get linked to here.
-#![doc(html_root_url = "https://docs.rs/named_tup/0.3.0")]
+#![doc(html_root_url = "https://docs.rs/named_tup/0.3.1")]
 
 pub use convert::{TupFrom, TupInto};
 /// The whole point.
