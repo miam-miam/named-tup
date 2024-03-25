@@ -4,8 +4,8 @@ version = "0.3.0"
 edition = "2021"
 documentation = "https://docs.rs/named-tup/"
 license = "MIT OR Apache-2.0"
-authors = ["miam-miam100 <MiamMiam@mailbox.org>"]
-repository = "https://github.com/miam-miam100/named-tup"
+authors = ["miam-miam <MiamMiam@mailbox.org>"]
+repository = "https://github.com/miam-miam/named-tup"
 description = "A helper macro crate for the named-tup crate"
 
 [lib]

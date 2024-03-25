@@ -1,5 +1,5 @@
 #![no_std]
-//! [![github]](https://github.com/miam-miam100/named-tup)&ensp;[![crates-io]](https://crates.io/crates/named-tup)&ensp;[![docs-rs]](https://docs.rs/named-tup)
+//! [![github]](https://github.com/miam-miam/named-tup)&ensp;[![crates-io]](https://crates.io/crates/named-tup)&ensp;[![docs-rs]](https://docs.rs/named-tup)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -161,7 +161,7 @@ pub use convert::{TupFrom, TupInto};
 ///         true => tup!(foo: 4).into_tup(),
 ///         false => tup!(bar: Some(4)).into_tup(),
 ///     };
-///     
+///
 ///     read(tup!().into_tup());
 /// }
 ///
